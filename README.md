@@ -1,5 +1,4 @@
-Pastebin web application developed in Python using Django
-for Tsoha2015
+Pastebin web application developed in Python using Django for Tsoha2015
 ===
 
 Project idea
@@ -10,8 +9,10 @@ also post comments, delete their own pastes and mark selected pastes as favorite
 Links
 --
 [Test site](http://pastesite.matoking.com)
-[Documentation as a PDF](https://github.com/Matoking/pastebin-django/doc/documentation.pdf)
-[Various documentation files](https://github.com/Matoking/pastebin-django/doc)
+
+[Documentation as a PDF](https://github.com/Matoking/pastebin-django/blob/master/doc/documentation.pdf)
+
+[Various documentation files](https://github.com/Matoking/pastebin-django/blob/master/doc)
 
 Features
 --
@@ -20,3 +21,4 @@ Features
 	* allows user to delete his own pastes, mark other pastes as favorites
 - comments
 - astoundingly okay-ish website layout, courtesy of Twitter Bootstrap
+

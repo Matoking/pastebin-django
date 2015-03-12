@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-9">
+			<div class="page-header">
+				<h3>Post a new paste</h3>
+			</div>
+			{% include "home/submit_paste_form.html" %}
+		</div>
+		<div class="col-md-3">
+			<div class="page-header">
+				<h4><span class="glyphicon glyphicon-fire"></span> Latest pastes</h4>
+			</div>
+			<table class="table latest-pastes-table">
+				<thead>
+					<tr>
+						<th>Title</th>
+						<th>Age</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>Placeholder Title</td>
+						<td>5 m</td>
+					</tr>
+					<tr>
+						<td>Another Paste</td>
+						<td>15 m</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{% endblock %}

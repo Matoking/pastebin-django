@@ -1,0 +1,25 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+{# HEADER #}
+{% block head %}
+<head>
+    {% include 'header.html' %}
+</head>
+{% endblock head %}
+
+{% block body %}
+{% block body_tag %}<body>{% endblock body_tag %}
+	{# MENUBAR #}
+    {% block navbar %}{% include "navbar.html" %}{% endblock navbar %}
+    
+    {# PAGE CONTENT #}
+    {% block content %}
+    {% endblock content %}
+    
+    {# FOOTER #}
+    {% block footer %}{% include 'footer.html' %}{% endblock footer %}
+</body>
+{% endblock body %}
+
+</html>

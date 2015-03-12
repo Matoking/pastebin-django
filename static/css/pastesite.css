@@ -1,0 +1,9 @@
+.paste-text-field {
+	font-family: Consolas, "DejaVu Sans Mono", "Lucida Console", Monaco, monospace;
+    font-size: 10pt;
+    resize: none;
+}
+
+.latest-pastes-table {
+	text-size: 80%;
+}

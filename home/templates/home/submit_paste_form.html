@@ -1,0 +1,31 @@
+<form action="{% url 'pastes:submit_paste' %}" method="post" class="form-horizontal">
+	<textarea name="paste_text" class="form-control paste-text-field" rows="15"></textarea>
+	<br>
+	<!-- Title -->
+	<div class="form-group">
+		<label for="paste_title" class="col-sm-2 control-label">Title</label>
+		<div class="col-sm-8">
+			<input type="text" class="form-control" name="paste_title" placeholder="Paste title">
+		</div>
+	</div>
+	<!-- Paste expiration -->
+	<div class="form-group">
+		<label for="paste_expiration" class="col-sm-2 control-label">Expires after</label>
+		<div class="col-sm-8">
+			<select name="paste_expiration" class="form-control">
+				<option selected="selected" value="never">Never</option>
+				<option value="15m">15 minutes</option>
+				<option value="1h">1 hour</option>
+				<option value="1d">1 day</option>
+				<option value="1w">1 week</option>
+				<option value="15m">1 month</option>
+			</select>
+		</div>
+	</div>
+	<!-- Submit -->
+	<div class="form-group">
+		<div class="col-sm-offset-2">
+			<button class="btn btn-primary">Submit Paste</button>
+		</div>
+	</div>
+</form>

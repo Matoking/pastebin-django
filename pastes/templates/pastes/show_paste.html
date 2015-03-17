@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			{% if paste %}
+			<div class="page-header">
+				<h1>{{ paste.title }}</h1>
+			</div>
+			<pre>{{ paste.text }}</pre>
+			{% else %}
+			<p>Didn't find yer paste.</p>
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endblock %}

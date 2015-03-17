@@ -10,27 +10,7 @@
 			{% include "home/submit_paste_form.html" %}
 		</div>
 		<div class="col-md-3">
-			<div class="page-header">
-				<h4><span class="glyphicon glyphicon-fire"></span> Latest pastes</h4>
-			</div>
-			<table class="table latest-pastes-table">
-				<thead>
-					<tr>
-						<th>Title</th>
-						<th>Age</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>Placeholder Title</td>
-						<td>5 m</td>
-					</tr>
-					<tr>
-						<td>Another Paste</td>
-						<td>15 m</td>
-					</tr>
-				</tbody>
-			</table>
+			{% include "home/latest_pastes.html" %}
 		</div>
 	</div>
 </div>

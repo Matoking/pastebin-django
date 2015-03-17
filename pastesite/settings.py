@@ -70,21 +70,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'pastesite',
-        'USER': 'testuser',
-        'PASSWORD': 'testpassword',
+        'USER': 'superman',
+        'PASSWORD': 'superpass',
         'HOST': 'localhost',
         'PORT': '', # Default
     }
 }
-
-# Use SQLite when running unit tests
-if 'test' in sys.argv:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
@@ -104,6 +95,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = # Change this to directory to where all static files should be copied to
+STATIC_ROOT = "" # Change this to directory to where all static files should be copied to
 
 STATICFILES_DIRS = ( '%s/../../static/' % os.path.realpath(__file__), )

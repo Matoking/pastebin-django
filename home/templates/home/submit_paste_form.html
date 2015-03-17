@@ -1,4 +1,5 @@
 <form action="{% url 'pastes:submit_paste' %}" method="post" class="form-horizontal">
+	{% csrf_token %}
 	<textarea name="paste_text" class="form-control paste-text-field" rows="15"></textarea>
 	<br>
 	<!-- Title -->
@@ -18,13 +19,23 @@
 				<option value="1h">1 hour</option>
 				<option value="1d">1 day</option>
 				<option value="1w">1 week</option>
-				<option value="15m">1 month</option>
+				<option value="1month">1 month</option>
+			</select>
+		</div>
+	</div>
+	<!-- Paste visibility -->
+	<div class="form-group">
+		<label for="paste_visibility" class="col-sm-2 control-label">Visibility</label>
+		<div class="col-sm-8">
+			<select name="paste_visibility" class="form-control">
+				<option selected="selected" value="public">Public</option>
+				<option value="hidden">Hidden</option>
 			</select>
 		</div>
 	</div>
 	<!-- Submit -->
 	<div class="form-group">
-		<div class="col-sm-offset-2">
+		<div class="col-sm-offset-2 col-sm-10">
 			<button class="btn btn-primary">Submit Paste</button>
 		</div>
 	</div>

@@ -1,0 +1,23 @@
+<div class="page-header">
+	<h4><span class="glyphicon glyphicon-fire"></span> Latest pastes</h4>
+</div>
+{% if latest_pastes %}
+<table class="table latest-pastes-table">
+	<thead>
+		<tr>
+			<th>Title</th>
+			<th>Age</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for paste in latest_pastes %}
+		<tr>
+			<td><a href="{% url "show_paste" paste.char_id %}">{{ paste.title }}</a></td>
+			<td>{{ paste.submitted|timesince }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% else %}
+<p>No pastes have been submitted yet. :(</p>
+{% endif %}

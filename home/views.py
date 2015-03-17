@@ -1,6 +1,7 @@
 from django.shortcuts import render
 
 from pastes.forms import SubmitPasteForm
+from pastes.models import Paste, LatestPastes
 
 def home(request):
     """
@@ -9,4 +10,7 @@ def home(request):
     """
     paste_form = SubmitPasteForm(None)
     
-    return render(request, 'home/home.html', {"form": paste_form})
+    latest_pastes = LatestPastes.get_latest_pastes()
+    
+    return render(request, 'home/home.html', {"form": paste_form,
+                                              "latest_pastes": latest_pastes})

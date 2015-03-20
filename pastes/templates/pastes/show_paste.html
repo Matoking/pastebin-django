@@ -1,17 +1,74 @@
 {% extends "base.html" %}
+{% load extra_tags %}
 
 {% block content %}
 <div class="container">
 	<div class="row">
 		<div class="col-md-12">
-			{% if paste %}
-			<div class="page-header">
-				<h1>{{ paste.title }}</h1>
+			<br>
+			<div class="panel panel-info">
+				<div class="panel-heading">
+					<h1 class="panel-title">{{ paste.title }}</h1>
+				</div>
+				<div class="panel-body">
+					<div class="container">
+						<div class="col-md-3">
+							<p><b>SUBMITTED BY:</b> Guest</p>
+							<p><b>DATE:</b> {{ paste.submitted }}</p>
+							{% if paste.expiration_date %}
+								{% with timesince_seconds=paste.expiration_date|timeuntil_in_seconds %}
+									<p><b style="color: red;">EXPIRES IN:</b> {% seconds_to_str timesince_seconds %}</p>
+								{% endwith %}
+							{% endif %}
+						</div>
+						<div class="col-md-3">
+							<p><b>PUPPIES DEGAUSSED:</b> 42</p>
+							<p><b>INDIFFERENT RESPONSES:</b> 3</p>
+						</div>
+						<div class="col-md-3">
+							<p><b>COMMENTS: </b> 242</p>
+							<button type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-menu-down"></span> Go to comments</button>
+						</div>
+						<div class="col-md-3">
+							<button type="button" class="btn btn-info btn-sm">Share</button>
+							<button type="button" class="btn btn-success btn-sm">Like</button>
+							<button type="button" class="btn btn-warning btn-sm">Tweet</button>
+							<button type="button" class="btn btn-warning btn-sm">Toot</button>
+						</div>
+					</div>
+				</div>
 			</div>
+			<hr>
 			<pre>{{ paste.text }}</pre>
-			{% else %}
-			<p>Didn't find yer paste.</p>
-			{% endif %}
+			<!-- Comments -->
+			<hr>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h4 class="panel-title">Comments (242)</h4>
+				</div>
+				<div class="panel-body">
+					<div class="container">
+						<div class="media">
+							<div class="media-body">
+								<h4 class="media-heading">Matoking</h4>
+								First.
+							</div>
+						</div>
+						<div class="media">
+							<div class="media-body">
+								<h4 class="media-heading">blahblahbleh</h4>
+								Second.
+							</div>
+						</div>
+						<div class="media">
+							<div class="media-body">
+								<h4 class="media-heading">blahblahbleh</h4>
+								lol this fag used bootstrap for site layout
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

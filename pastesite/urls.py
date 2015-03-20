@@ -16,6 +16,7 @@ urlpatterns = patterns('',
     #url(r'^$', TemplateView.as_view(template_name='homepage.html'), name="homepage"),
     url(r'^$', include("home.urls", namespace="home")),
     url(r'^pastes/', include("pastes.urls", namespace="pastes")),
+    url(r'^users/', include("users.urls", namespace="users")),
     
     url(r'^(?P<char_id>\w{8})/', paste_views.show_paste, name="show_paste"),
 )

@@ -67,6 +67,36 @@ class Paste(object):
         return paste
     
     @staticmethod
+    def is_paste_expired(id=None, char_id=None):
+        """
+        Check if the paste has expired
+        
+        If paste has an expiration date and has expired, return True
+        Otherwise return False
+        """
+        query = """SELECT 1 FROM pastes"""
+        parameters = []
+        
+        if id != None:
+            query += "\nWHERE id = %s"
+            parameters.append(id)
+        elif char_id != None:
+            query += "\nWHERE char_id = %s"
+            parameters.append(char_id)
+            
+        query += " AND expiration_date IS NOT NULL AND expiration_date <= %s"
+        
+        current_datetime = datetime.datetime.now()
+        parameters.append(current_datetime)
+        
+        result = cursor.query_to_list(query, parameters)
+        
+        if len(result) >= 1:
+            return True
+        else:
+            return False
+    
+    @staticmethod
     def add_paste(text, user=None, title="Untitled", expiration=None, visibility=None):
         """
         Add paste with the provided title and text
@@ -94,7 +124,7 @@ class Paste(object):
         if user is not None:
             user_id = user.id
             
-        if expiration is not Paste.NEVER:
+        if expiration != Paste.NEVER:
             expiration_datetime = Paste.get_expiration_datetime(expiration)
         else:
             expiration_datetime = None
@@ -147,10 +177,12 @@ class LatestPastes(object):
         Get the titles and char IDs of latest pastes by a limit (default 10)
         """
         query = """SELECT char_id, title, submitted FROM pastes
-                   WHERE hidden = false
+                   WHERE hidden = false AND (expiration_date IS NULL OR expiration_date >= %s)
                    ORDER BY submitted DESC
                    LIMIT %s"""
                    
-        results = cursor.query_to_list(query, [limit])
+        current_datetime = datetime.datetime.now()
+                   
+        results = cursor.query_to_list(query, [current_datetime, limit])
         
         return results

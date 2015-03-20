@@ -20,7 +20,13 @@ def submit_paste(request):
         return redirect("home:home")
     
 def show_paste(request, char_id):
+    # If paste has expired, show the ordinary "paste not found" page
+    if Paste.is_paste_expired(char_id=char_id):
+        return render(request, "pastes/paste_error.html", {"reason": "expired"})
+    
     paste = Paste.get_paste(char_id=char_id, include_text=True)
     
+    if paste is None:
+        return render(request, "pastes/paste_error.html", {"reason": "not_found"})
+    
     return render(request, "pastes/show_paste.html", {"paste": paste})
-    pass

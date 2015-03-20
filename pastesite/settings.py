@@ -38,11 +38,14 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    'django.contrib.humanize',
+    
     'widget_tweaks', # Allows more fine-grained control of HTML in forms
     
     'pastesite',
     'home',
     'pastes',
+    'users',
 )
 
 MIDDLEWARE_CLASSES = (

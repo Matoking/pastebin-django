@@ -44,3 +44,10 @@ CREATE TABLE comments (
 
 CREATE INDEX comment_id_index ON comments(id);
 CREATE INDEX comment_paste_id_index ON comments(paste_id);
+
+CREATE TABLE favorites (
+	id SERIAL PRIMARY KEY,
+	paste_id INTEGER REFERENCES pastes(id),
+	favorite_user INTEGER REFERENCES auth_user(id),
+	added TIMESTAMP NOT NULL
+);

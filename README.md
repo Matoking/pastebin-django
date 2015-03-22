@@ -9,6 +9,7 @@ also post comments, delete their own pastes and mark selected pastes as favorite
 Links
 --
 [Test site](http://pastesite.matoking.com)
+[Example paste](http://pastesite.matoking.com/rWBz9nQX/)
 
 [Documentation as a PDF](https://github.com/Matoking/pastebin-django/blob/master/doc/documentation.pdf)
 

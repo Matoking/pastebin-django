@@ -40,6 +40,21 @@ class Paste(object):
         return exp_datetime
     
     @staticmethod
+    def get_id(char_id):
+        """
+        Get paste's id by its char ID
+        """
+        query = """SELECT id FROM pastes
+                   WHERE char_id = %s"""
+                   
+        result = cursor.query_to_dict(query, [char_id])
+        
+        if len(result) > 0:
+            return result[0]["id"]
+        else:
+            return None
+    
+    @staticmethod
     def get_random_char_id():
         """ Get a random 8 character string for the char id """
         return ''.join(random.SystemRandom().choice(string.uppercase + string.lowercase + string.digits) for _ in xrange(8))
@@ -51,7 +66,8 @@ class Paste(object):
         
         if include_text is True, also include the text content as well
         """
-        query = """SELECT * FROM pastes"""
+        query = """SELECT * FROM pastes
+                   LEFT JOIN auth_user ON pastes.user_id = auth_user.id"""
         
         if id != None:
             query += "\nWHERE id = %s"
@@ -59,6 +75,9 @@ class Paste(object):
         elif char_id != None:
             query += "\nWHERE char_id = %s"
             paste = cursor.query_to_dict(query, [char_id])
+            
+        if paste == None:
+            return None
             
         if include_text == True:
             paste_text = PasteContent.get_paste_text(paste["hash"])
@@ -105,7 +124,7 @@ class Paste(object):
         """
         c = connection.cursor()
         
-        query = """INSERT INTO pastes (char_id, submit_user, title, hash, expiration_date, hidden, submitted)
+        query = """INSERT INTO pastes (char_id, user_id, title, hash, expiration_date, hidden, submitted)
                    VALUES (%s, %s, %s, %s, %s, %s, %s)"""
         
         # Generate a random 8 character string for the char ID
@@ -120,7 +139,6 @@ class Paste(object):
             hidden = False
             
         user_id = None
-            
         if user is not None:
             user_id = user.id
             
@@ -136,6 +154,32 @@ class Paste(object):
             PasteContent.add_paste_text(text)
         
         return char_id
+    
+    @staticmethod
+    def get_pastes(user, count=30, offset=0):
+        """
+        Get pastes by user starting from the provided offset
+        """
+        query = """SELECT id, char_id, title, submitted FROM pastes
+                   WHERE user_id = %s
+                   ORDER BY submitted DESC
+                   OFFSET %s LIMIT %s"""
+                   
+        result = cursor.query_to_list(query, [user.id, offset, count])
+        
+        return result
+    
+    @staticmethod
+    def get_paste_count(user):
+        """
+        Get the amount of pastes the user has uploaded
+        """
+        query = """SELECT COUNT(*) AS count FROM pastes
+                   WHERE user_id = %s"""
+                   
+        result = cursor.query_to_dict(query, [user.id])
+        
+        return result["count"]
     
 class PasteContent(object):
     """

@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load extra_tags %}
 
+{% block title %}{{ paste.title }}{% endblock %}
+
 {% block content %}
 <div class="container">
 	<div class="row">
@@ -13,7 +15,7 @@
 				<div class="panel-body">
 					<div class="container">
 						<div class="col-md-3">
-							<p><b>SUBMITTED BY:</b> Guest</p>
+							<p><b>SUBMITTED BY:</b> {% if paste.username %}<b>{{ paste.username }}</b>{% else %}Guest{% endif %}</p>
 							<p><b>DATE:</b> {{ paste.submitted }}</p>
 							{% if paste.expiration_date %}
 								{% with timesince_seconds=paste.expiration_date|timeuntil_in_seconds %}
@@ -22,8 +24,8 @@
 							{% endif %}
 						</div>
 						<div class="col-md-3">
-							<p><b>PUPPIES DEGAUSSED:</b> 42</p>
-							<p><b>INDIFFERENT RESPONSES:</b> 3</p>
+							<a class="btn btn-primary btn-sm" href="{% url "raw_paste" paste.char_id %}"><span class="glyphicon glyphicon-font"></span> Raw</a>
+							<a class="btn btn-primary btn-sm" href="{% url "download_paste" paste.char_id %}"><span class="glyphicon glyphicon-download"></span> Download</a>
 						</div>
 						<div class="col-md-3">
 							<p><b>COMMENTS: </b> 242</p>

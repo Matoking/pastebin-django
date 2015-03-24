@@ -1,0 +1,34 @@
+{% load humanize %}
+{% if pastes %}
+<table class="table">
+	<thead>
+		<tr>
+			<th>Title</th>
+			<th>Age</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for paste in pastes %}
+		<tr>
+			<td><a href="{% url "show_paste" paste.char_id %}">{{ paste.title|truncatechars:32 }}</a></td>
+			<td>{{ paste.submitted|naturaltime }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% if 1 < 5 %}
+<a class="btn btn-primary" href="{% url 'users:pastes' username=profile_username %}">All pastes</a>
+{% endif %}
+{% else %}
+	{% if profile_username == user.get_username %}
+	<div class="alert alert-info">
+		<strong>No pastes uploaded</strong><br>
+		You haven't uploaded any pastes yet.
+	</div>
+	{% else %}
+	<div class="alert alert-info">
+		<strong>No pastes uploaded</strong><br>
+		This user hasn't uploaded any pastes yet.
+	</div>
+	{% endif %}
+{% endif %}

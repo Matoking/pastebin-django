@@ -2,6 +2,14 @@
 	{% csrf_token %}
 	<textarea name="paste_text" class="form-control paste-text-field" rows="15"></textarea>
 	<br>
+	{% if user.is_authenticated %}
+	<div class="form-group">
+		<div class="col-sm-2"></div>
+		<div class="col-sm-10">
+			<p class="form-control-static">You are uploading this paste as user <b>{{ user.get_username }}</b></p>
+		</div>
+	</div>
+	{% endif %}
 	<!-- Title -->
 	<div class="form-group">
 		<label for="paste_title" class="col-sm-2 control-label">Title</label>

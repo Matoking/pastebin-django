@@ -2,7 +2,7 @@
 CREATE TABLE pastes (
 	id SERIAL PRIMARY KEY,
 	char_id CHAR(8) NOT NULL, -- 8-character identifier, used in the URL
-	submit_user INTEGER DEFAULT NULL REFERENCES auth_user(id), -- reference to registered user as defined by Django, can be NULL
+	user_id INTEGER DEFAULT NULL REFERENCES auth_user(id), -- reference to registered user as defined by Django, can be NULL
 	
 	title VARCHAR(128) NOT NULL, -- Title of the paste
 	hash CHAR(64) NOT NULL, -- Hash of the paste's text (SHA256, probably a bit overkill),
@@ -35,7 +35,7 @@ CREATE INDEX paste_content_hash_index ON paste_content(hash);
 CREATE TABLE comments (
 	id SERIAL PRIMARY KEY,
 	paste_id INTEGER REFERENCES pastes(id),
-	comment_user INTEGER REFERENCES auth_user(id),
+	user_id INTEGER REFERENCES auth_user(id),
 	
 	text VARCHAR(2048) NOT NULL, -- the actual comment
 	
@@ -48,6 +48,6 @@ CREATE INDEX comment_paste_id_index ON comments(paste_id);
 CREATE TABLE favorites (
 	id SERIAL PRIMARY KEY,
 	paste_id INTEGER REFERENCES pastes(id),
-	favorite_user INTEGER REFERENCES auth_user(id),
+	user_id INTEGER REFERENCES auth_user(id),
 	added TIMESTAMP NOT NULL
 );

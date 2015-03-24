@@ -7,10 +7,24 @@
 	    	<ul class="nav navbar-nav">
 		        <li><a href="{% url 'home:home' %}">Home</a></li>
 		    </ul>
-                <ul class="nav navbar-nav navbar-right">
-                    <li><a href="#">Register</a></li>
-                    <li><a href="#">Login</a></li>
-                </ul>
+            <ul class="nav navbar-nav navbar-right">
+                {% if user.is_authenticated %}
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"><b><span class="glyphicon glyphicon-user"></span> {{ user.get_username }}</b> <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    	<li><a href="{% url 'users:profile' user.get_username %}"><span class="glyphicon glyphicon-user"></span> {{ user.get_username }}</a></li>
+                    	<li class="divider"></li>
+                    	<li><a href="{% url 'users:pastes' user.get_username %}"><span class="glyphicon glyphicon-plus"></span> My pastes</a></li>
+                    	<li><a href="{% url 'users:favorites' user.get_username %}"><span class="glyphicon glyphicon-star"></span> My favorites</a></li>
+                    	<li class="divider"></li>
+                        <li><a href="{% url 'users:logout' %}"><span class="glyphicon glyphicon-off"></span> Logout</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li><a href="{% url 'users:register' %}">Register</a></li>
+                <li><a href="{% url 'users:login' %}">Login</a></li>
+                {% endif %}
+            </ul>
 	    </div><!--/.nav-collapse -->
 	</div>
 </div>

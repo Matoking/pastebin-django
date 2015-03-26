@@ -24,6 +24,10 @@ class Paste(object):
     
     @staticmethod
     def get_expiration_datetime(expiration):
+        """
+        Take the current datetime and move it forward by the given timedelta,
+        giving us the paste's expiration date
+        """
         exp_datetime = datetime.datetime.now()
         
         if expiration == Paste.FIFTEEN_MINUTES:
@@ -49,8 +53,8 @@ class Paste(object):
                    
         result = cursor.query_to_dict(query, [char_id])
         
-        if len(result) > 0:
-            return result[0]["id"]
+        if result != None:
+            return result["id"]
         else:
             return None
     
@@ -66,7 +70,8 @@ class Paste(object):
         
         if include_text is True, also include the text content as well
         """
-        query = """SELECT * FROM pastes
+        query = """SELECT pastes.id, char_id, user_id, auth_user.username AS username, title,
+                          hash, expiration_date, hidden, submitted FROM pastes
                    LEFT JOIN auth_user ON pastes.user_id = auth_user.id"""
         
         if id != None:
@@ -79,7 +84,7 @@ class Paste(object):
         if paste == None:
             return None
             
-        if include_text == True:
+        if include_text:
             paste_text = PasteContent.get_paste_text(paste["hash"])
             paste["text"] = paste_text
            
@@ -122,8 +127,6 @@ class Paste(object):
         
         Returns the paste's char ID if the paste was successfully added, False otherwise
         """
-        c = connection.cursor()
-        
         query = """INSERT INTO pastes (char_id, user_id, title, hash, expiration_date, hidden, submitted)
                    VALUES (%s, %s, %s, %s, %s, %s, %s)"""
         
@@ -156,14 +159,43 @@ class Paste(object):
         return char_id
     
     @staticmethod
+    def delete_paste(id=None, char_id=None):
+        """
+        Delete the paste
+        """
+        if char_id != None:
+            id = Paste.get_id(char_id)
+            
+        with transaction.atomic():
+            # Delete favorites linked to this paste first
+            query = """DELETE FROM favorites
+                       WHERE paste_id = %s"""
+                       
+            cursor.query(query, [id])
+            
+            # After that, delete the actual paste
+            query = """DELETE FROM pastes
+                       WHERE id = %s"""
+            
+            cursor.query(query, [id])
+            
+        return True
+    
+    @staticmethod
     def get_pastes(user, count=30, offset=0):
         """
         Get pastes by user starting from the provided offset
+        If count is None, -1 or "all", retrieve all records
         """
         query = """SELECT id, char_id, title, submitted FROM pastes
                    WHERE user_id = %s
                    ORDER BY submitted DESC
                    OFFSET %s LIMIT %s"""
+                   
+        # If count is not provided or it's "all",
+        # assume user wants to retrieve all records
+        if count == None or count == -1 or count == "all":
+            count = "ALL"
                    
         result = cursor.query_to_list(query, [user.id, offset, count])
         

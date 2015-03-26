@@ -9,6 +9,11 @@ def query_to_list(query, query_args):
     cursor = connection.cursor()
     
     cursor.execute(query, query_args)
+    
+    # If no rows were returned, return an empty list instead
+    if cursor.description == None:
+        return []
+    
     col_names = [desc[0] for desc in cursor.description]
     
     results = []

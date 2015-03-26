@@ -17,12 +17,16 @@ class Favorite(object):
         if char_id != None:
             id = Paste.get_id(char_id)
                 
+        if id == None:
+            return False
+                
         current_datetime = datetime.datetime.now()
                 
         query = """INSERT INTO favorites (paste_id, user_id, added)
-                   VALUES (%s, %s, %s)"""
+                   SELECT %s, %s, %s
+                   WHERE NOT EXISTS ( SELECT 1 FROM favorites WHERE paste_id = %s AND user_id = %s )"""
                    
-        result = cursor.query_to_dict(query, [id, user.id, current_datetime])
+        result = cursor.query_to_dict(query, [id, user.id, current_datetime, id, user.id])
         
         return True
         
@@ -33,8 +37,11 @@ class Favorite(object):
         """
         if char_id != None:
             id = Paste.get_id(char_id)
+        
+        if id == None:
+            return False
             
-        query = """DELETE FROM pastes
+        query = """DELETE FROM favorites
                    WHERE user_id = %s AND paste_id = %s"""
                    
         result = cursor.query_to_dict(query, [user.id, id])
@@ -49,7 +56,7 @@ class Favorite(object):
         if char_id != None:
             id = Paste.get_id(char_id)
             
-        query = """SELECT 1 FROM favorites
+        query = """SELECT id FROM favorites
                    WHERE user_id = %s AND paste_id = %s"""
                    
         result = cursor.query_to_list(query, [user.id, id])

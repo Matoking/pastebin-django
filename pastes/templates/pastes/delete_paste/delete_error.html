@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="page-header">
+		        <h1>Delete paste</h1>
+		    </div>
+			<div class="alert alert-warning">
+				{% if reason == "not_found" %}
+				<strong>Paste not found</strong><br>
+				The paste you tried to delete was not found.
+				{% elif reason == "not_logged_in" %}
+				<strong>Not logged in</strong><br>
+				You have to be logged in to delete your own pastes.
+				{% elif reason == "not_owner" %}
+				<strong>Not permitted</strong><br>
+				You can't delete a paste you didn't upload yourself. It would be really bad if you could.
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

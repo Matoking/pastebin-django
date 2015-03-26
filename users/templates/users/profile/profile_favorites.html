@@ -11,7 +11,7 @@
 		{% for paste in favorites %}
 		<tr>
 			<td><a href="{% url "show_paste" paste.char_id %}">{{ paste.title|truncatechars:32 }}</a></td>
-			<td>{{ paste.submitted|naturaltime }}</td>
+			<td>{{ paste.added|naturaltime }}</td>
 		</tr>
 		{% endfor %}
 	</tbody>

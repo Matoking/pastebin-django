@@ -1,5 +1,10 @@
 {% load humanize %}
 {% if pastes %}
+	{% if profile_username == user.get_username %}
+	<h3>My recent pastes</h3>
+	{% else %}
+	<h3>Recent pastes</h3>
+	{% endif %}
 <table class="table">
 	<thead>
 		<tr>
@@ -16,9 +21,6 @@
 		{% endfor %}
 	</tbody>
 </table>
-{% if 1 < 5 %}
-<a class="btn btn-primary" href="{% url 'users:pastes' username=profile_username %}">All pastes</a>
-{% endif %}
 {% else %}
 	{% if profile_username == user.get_username %}
 	<div class="alert alert-info">

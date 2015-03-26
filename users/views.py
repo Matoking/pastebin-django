@@ -62,27 +62,31 @@ def logout_view(request):
         
     return render(request, 'users/logout/logged_out.html')
 
-def profile(request, username):
+def profile(request, username, page="home"):
     """
-    Show the user's profile, which shows his most recent favorites and uploaded pastes
+    Show the user's profile and the selected page
     """
     profile_user = User.objects.get(username=username)
     
     if profile_user == None:
         return render(request, "users/profile/profile_error.html", {"reason": "not_found"})
     
-    favorites = Favorite.get_favorites(profile_user, count=15)
-    total_favorite_count = Favorite.get_favorite_count(profile_user)
+    args = {"profile_user": profile_user,
+            
+            "total_favorite_count": Favorite.get_favorite_count(profile_user),
+            "total_paste_count": Paste.get_paste_count(profile_user)}
     
-    pastes = Paste.get_pastes(profile_user, count=15)
-    total_paste_count = Paste.get_paste_count(profile_user)
+    if page == "home":
+        return home(request, args)
     
-    return render(request, "users/profile/profile.html", {"profile_username": profile_user.username,
-                                                          "favorites": favorites,
-                                                          "total_favorite_count": total_favorite_count,
-                                                          
-                                                          "pastes": pastes,
-                                                          "total_paste_count": total_paste_count })
+def home(request, args):
+    """
+    Display user profile's home with the most recent pastes and favorites
+    """
+    args["favorites"] = Favorite.get_favorites(args["profile_user"], count=15)
+    args["pastes"] = Paste.get_pastes(args["profile_user"], count=15)
+    
+    return render(request, "users/profile/home/home.html", args)
     
 def pastes(request, username, page=1):
     """

@@ -5,27 +5,15 @@
 	<div class="row">
 		<div class="col-md-12">
 			<div class="page-header">
-				<h1>{{ profile_username }}</h1>
+				<h1>{{ profile_user.get_username }}</h1>
 			</div>
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-md-6">
-			{% if profile_username == user.get_username %}
-			<h3>My pastes</h3>
-			{% else %}
-			<h3>Pastes</h3>
-			{% endif %}
-			{% include "users/profile/profile_pastes.html" %}
+		<div class="col-md-2">
+			{% include "users/profile/profile_navbar.html" %}
 		</div>
-		<div class="col-md-6">
-			{% if profile_username == user.get_username %}
-			<h3>My favorites</h3>
-			{% else %}
-			<h3>Favorites</h3>
-			{% endif %}
-			{% include "users/profile/profile_favorites.html" %}
-		</div>
+		{% block profile_content %}{% endblock %}
 	</div>
 </div>
 {% endblock %}

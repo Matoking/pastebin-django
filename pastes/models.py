@@ -182,24 +182,42 @@ class Paste(object):
         return True
     
     @staticmethod
-    def get_pastes(user, count=30, offset=0):
+    def get_pastes(user=None, count=30, offset=0):
         """
-        Get pastes by user starting from the provided offset
+        Get pastes, optionally filtering by user and starting from a provided offset
+        
         If count is None, -1 or "all", retrieve all records
+        By default only 30 entries are retrieved
         """
         query = """SELECT id, char_id, title, submitted FROM pastes
-                   WHERE user_id = %s
+                   {WHERE}
                    ORDER BY submitted DESC
                    OFFSET %s LIMIT %s"""
+        parameters = []
+                   
+        if user != None:
+            query = query.replace("{WHERE}", "WHERE user_id = %s")
+            parameters.append(user.id)
                    
         # If count is not provided or it's "all",
         # assume user wants to retrieve all records
         if count == None or count == -1 or count == "all":
             count = "ALL"
+            
+        parameters.append(offset)
+        parameters.append(count)
                    
-        result = cursor.query_to_list(query, [user.id, offset, count])
+        result = cursor.query_to_list(query, parameters)
         
         return result
+    
+    @staticmethod
+    def get_all_pastes():
+        """
+        Retrieves every single paste from the database
+        Needless to say, this shouldn't be used in a production environment 
+        """
+        return Paste.get_pastes(count=-1)
     
     @staticmethod
     def get_paste_count(user):

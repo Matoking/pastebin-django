@@ -1,0 +1,15 @@
+<div class="list-group">
+	<a href="{% url "users:profile" profile_user.get_username %}" class="list-group-item active"><span class="glyphicon glyphicon-home"></span> Home</a>
+	<a href="{% url "users:pastes" profile_user.get_username %}" class="list-group-item">
+		{% if total_paste_count > 0 %}
+		<span class="badge">{{ total_paste_count }}</span>
+		{% endif %}
+		<span class="glyphicon glyphicon-file"></span> Pastes
+	</a>
+	<a href="{% url "users:favorites" profile_user.get_username %}" class="list-group-item">
+		{% if total_favorite_count > 0 %}
+		<span class="badge">{{ total_favorite_count }}</span>
+		{% endif %}
+		<span class="glyphicon glyphicon-star"></span> Favorites
+	</a>
+</div>

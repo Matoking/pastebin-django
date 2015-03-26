@@ -1,24 +1,24 @@
 {% load humanize %}
 {% if favorites %}
+	{% if profile_username == user.get_username %}
+	<h3>My recent favorites</h3>
+	{% else %}
+	<h3>Recent favorites</h3>
+	{% endif %}
 <table class="table">
 	<thead>
 		<tr>
 			<th>Title</th>
-			<th>Age</th>
 		</tr>
 	</thead>
 	<tbody>
 		{% for paste in favorites %}
 		<tr>
-			<td><a href="{% url "show_paste" paste.char_id %}">{{ paste.title|truncatechars:32 }}</a></td>
-			<td>{{ paste.added|naturaltime }}</td>
+			<td><a href="{% url "show_paste" paste.char_id %}">{{ paste.title|truncatechars:64 }}</a></td>
 		</tr>
 		{% endfor %}
 	</tbody>
 </table>
-{% if favorites.count < total_favorite_count %}
-<a class="btn btn-primary" href="{% url 'users:favorites' profile_username %}">All favorites</a>
-{% endif %}
 {% else %}
 	{% if profile_username == user.get_username %}
 	<div class="alert alert-info">

@@ -2,6 +2,7 @@ from collections import OrderedDict
 from itertools import chain
 
 from highlighting import settings
+from highlighting.formatter import ListHtmlFormatter
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
@@ -21,8 +22,8 @@ def format_text(text, format="text"):
     Format the text using Pygments and return the formatted text
     """
     lexer = get_lexer_by_name(format)
-    formatter = HtmlFormatter(linenos=True,
-                              prestyles="border-radius: 0px; background-color: white; border: 0px;")
+    formatter = ListHtmlFormatter(linenos=False,
+                                  prestyles="border-radius: 0px; background-color: white; border: 0px;")
     result = highlight(text, lexer, formatter)
     
     # A small hack to include CSS styles in the table containing the line numbers

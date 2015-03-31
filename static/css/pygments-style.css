@@ -60,3 +60,21 @@
 .vg { color: #19177C } /* Name.Variable.Global */
 .vi { color: #19177C } /* Name.Variable.Instance */
 .il { color: #666666 } /* Literal.Number.Integer.Long */
+
+li.line {
+	font-weight: normal;
+	vertical-align: top;
+	color: rgb(175, 175, 175);
+	font-size: 1em;
+	border-left: 3px solid #6CE26C !important;
+	padding-left: 10px;
+	white-space: pre-wrap;
+}
+
+div.line {
+	color: black;
+}
+
+ol.code {
+	font-family: monospace;
+}

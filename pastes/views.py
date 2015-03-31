@@ -66,7 +66,6 @@ def show_paste(request, char_id, raw=False, download=False):
         paste_favorited = False
         
         if request.user.is_authenticated():
-            print(paste)
             paste_favorited = Favorite.is_paste_favorited(request.user, id=paste["id"])
             
         return render(request, "pastes/show_paste/show_paste.html", {"paste": paste,

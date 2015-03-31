@@ -41,11 +41,25 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     
     'widget_tweaks', # Allows more fine-grained control of HTML in forms
+    'lineage', # Used for navbar template tags
     
     'pastesite',
     'home',
     'pastes',
     'users',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.core.context_processors.static",
+    "django.core.context_processors.tz",
+    "django.contrib.messages.context_processors.messages",
+    
+    # Required by django-lineage
+    "django.core.context_processors.request",
 )
 
 MIDDLEWARE_CLASSES = (

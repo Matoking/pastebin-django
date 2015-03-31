@@ -1,3 +1,4 @@
+{% load lineage %}
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
 	<div class="container">
 	    <div class="navbar-header">
@@ -9,7 +10,7 @@
 		    </ul>
             <ul class="nav navbar-nav navbar-right">
                 {% if user.is_authenticated %}
-                <li class="dropdown">
+                <li class="dropdown {% ancestor "users:profile" user.get_username %}">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown"><b><span class="glyphicon glyphicon-user"></span> {{ user.get_username }}</b> <b class="caret"></b></a>
                     <ul class="dropdown-menu">
                     	<li><a href="{% url 'users:profile' user.get_username %}"><span class="glyphicon glyphicon-user"></span> {{ user.get_username }}</a></li>
@@ -21,8 +22,8 @@
                     </ul>
                 </li>
                 {% else %}
-                <li><a href="{% url 'users:register' %}">Register</a></li>
-                <li><a href="{% url 'users:login' %}">Login</a></li>
+                <li class="{% ancestor "users:register" %}"><a href="{% url 'users:register' %}">Register</a></li>
+                <li class="{% ancestor "users:login" %}"><a href="{% url 'users:login' %}">Login</a></li>
                 {% endif %}
             </ul>
 	    </div><!--/.nav-collapse -->

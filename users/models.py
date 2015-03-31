@@ -71,7 +71,7 @@ class Favorite(object):
         """
         Get a certain amount of user's favorites, starting from a defined offset
         """
-        query = """SELECT favorites.id, favorites.paste_id, pastes.char_id, pastes.title FROM favorites
+        query = """SELECT favorites.id, favorites.paste_id, pastes.char_id, pastes.title, favorites.added FROM favorites
                    INNER JOIN pastes ON favorites.paste_id = pastes.id
                    WHERE favorites.user_id = %s
                    ORDER BY favorites.added DESC

@@ -4,6 +4,8 @@ from django.template import Template, Variable, TemplateSyntaxError
 import humanfriendly
 import datetime
 
+import math
+
 register = template.Library()
 
 class RenderAsTemplateNode(template.Node):
@@ -48,6 +50,64 @@ def seconds_to_str(parser, token):
         raise TemplateSyntaxError("'%s' requires one argument with a number of seconds" % bits[0])
     
     return SecondsToStringNode(bits[1])
+
+class PaginationListNode(template.Node):
+    """
+    A template tag that returns a list with links to be inserted into a pagination element
+    
+    Takes three arguments, current page, entries per page and total amount of entries
+    """
+    def __init__(self, current_page, entries_per_page, total_entries):
+        self.current_page = Variable(current_page)
+        self.entries_per_page = Variable(entries_per_page)
+        self.total_entries = Variable(total_entries)
+        
+    def render(self, context):
+        entries = []
+        
+        self.current_page = self.current_page.resolve(context)
+        self.entries_per_page = self.entries_per_page.resolve(context)
+        self.total_entries = self.total_entries.resolve(context)
+        
+        self.total_pages = math.ceil(float(self.total_entries) / float(self.entries_per_page))
+        
+        # Add the first and previous pages
+        if self.current_page != 1:
+            entries.append("first")
+            entries.append("previous")
+        
+        # Add four pages before the current page
+        for i in range(0, 4):
+            page = self.current_page - i
+            
+            if page >= 1:
+                entries.append(page)
+                
+        # Add the current page
+        entries.append(current_page)
+        
+        # Add four pages after the current page
+        for i in range(0, 4):
+            page = self.current_page + i
+            
+            if page <= self.total_pages:
+                entries.append(page)
+                
+        # Add the next and last page
+        if self.current_page != self.total_pages:
+            entries.append("next")
+            entries.append("last")
+            
+        return entries
+
+@register.tag(name="pagination_list")
+def pagination_list(parser, token):
+    bits = token.split_contents()
+    
+    if len(bits) != 4:
+        raise TemplateSyntaxError("'%s' requires three arguments: current page, entries per page and total amount of entries" % bits[0])
+    
+    return PaginationListNode(bits[1], bits[2], bits[3])
 
 @register.filter(name="timesince_in_seconds")
 def timesince_in_seconds(value):

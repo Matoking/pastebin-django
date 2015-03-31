@@ -24,9 +24,8 @@ CREATE INDEX char_id_index ON pastes(char_id);
 CREATE TABLE paste_content (
 	id SERIAL PRIMARY KEY,
 	hash CHAR(64) NOT NULL,
-	text VARCHAR(200000) NOT NULL, -- text as it was submitted by the user
-	formatted_text VARCHAR(400000) NOT NULL -- Text with HTML formatting
-											-- (eg. code keyword formatting)
+	format VARCHAR(32), -- Formatting of the text. If NULL, the text isn't formatted and is stored in its original form
+	text VARCHAR(200000) NOT NULL
 );
 
 CREATE INDEX paste_content_id_index ON paste_content(id);

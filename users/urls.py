@@ -8,7 +8,13 @@ urlpatterns = patterns('',
     url(r'^login/', views.login_view, name="login"),
     url(r'^logout/', views.logout_view, name="logout"),
     
-    url(r'^(?P<username>\w+)/pastes', views.profile, {"page": "pastes"}, name="pastes"),
-    url(r'^(?P<username>\w+)/favorites', views.profile, {"page": "favorites"}, name="favorites"),
-    url(r'^(?P<username>\w+)/$', views.profile, {"page": "home"}, name="profile"),
+    url(r'^(?P<username>\w+)/pastes/(?P<page>\d+)', views.profile, {"tab": "pastes"}, name="pastes"),
+    url(r'^(?P<username>\w+)/pastes', views.profile, {"tab": "pastes",
+                                                      "page": 1}, name="pastes"),
+    
+    url(r'^(?P<username>\w+)/favorites/(?P<page>\d+)', views.profile, {"tab": "favorites"}, name="favorites"),
+    url(r'^(?P<username>\w+)/favorites', views.profile, {"tab": "favorites",
+                                                         "page": 1}, name="favorites"),
+    
+    url(r'^(?P<username>\w+)/$', views.profile, {"tab": "home"}, name="profile"),
 )

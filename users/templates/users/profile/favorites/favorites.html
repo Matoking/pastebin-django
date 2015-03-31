@@ -1,0 +1,37 @@
+{% extends "users/profile/profile.html" %}
+
+{% block profile_content %}
+<div class="col-md-10">
+	{% if favorites %}
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Title</th>
+				<th>Added</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for paste in favorites %}
+			<tr>
+				<td><a href="{% url "show_paste" paste.char_id %}">{{ paste.title|truncatechars:128 }}</a></td>
+				<td>{{ paste.added }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% include "pagination.html" with destination="users:favorites" url_arg=profile_user.get_username %}
+	{% else %}
+		{% if profile_username == user.get_username %}
+		<div class="alert alert-info">
+			<strong>No favorites added</strong><br>
+			You haven't added any favorites yet.
+		</div>
+		{% else %}
+		<div class="alert alert-info">
+			<strong>No favorites added</strong><br>
+			This user hasn't added any favorites yet.
+		</div>
+		{% endif %}
+	{% endif %}
+</div>
+{% endblock %}

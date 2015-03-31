@@ -7,6 +7,10 @@ from users.models import Favorite
 
 from pastes.models import Paste
 
+from pastesite.util import Paginator
+
+import math
+
 def register_view(request):
     # Check if the user is authenticated
     if request.user.is_authenticated():
@@ -62,22 +66,30 @@ def logout_view(request):
         
     return render(request, 'users/logout/logged_out.html')
 
-def profile(request, username, page="home"):
+def profile(request, username, tab="home", page=1):
     """
     Show the user's profile and the selected page
     """
+    page = int(page)
+    
     profile_user = User.objects.get(username=username)
     
     if profile_user == None:
         return render(request, "users/profile/profile_error.html", {"reason": "not_found"})
     
     args = {"profile_user": profile_user,
+            "current_page": page,
+            "tab": tab,
             
             "total_favorite_count": Favorite.get_favorite_count(profile_user),
             "total_paste_count": Paste.get_paste_count(profile_user)}
     
-    if page == "home":
+    if tab == "home":
         return home(request, args)
+    elif tab == "pastes":
+        return pastes(request, profile_user, args, page)
+    elif tab == "favorites":
+        return favorites(request, profile_user, args, page)
     
 def home(request, args):
     """
@@ -88,14 +100,28 @@ def home(request, args):
     
     return render(request, "users/profile/home/home.html", args)
     
-def pastes(request, username, page=1):
+def pastes(request, user, args, page=1):
     """
     Show all of user's pastes
     """
-    pass
+    PASTES_PER_PAGE = 30
+    offset = (page-1) * PASTES_PER_PAGE
     
-def favorites(request, username, page=1):
+    args["pastes"] = Paste.get_pastes(user, count=PASTES_PER_PAGE, offset=offset)
+    args["pages"] = Paginator.get_pages(page, PASTES_PER_PAGE, args["total_paste_count"])
+    args["total_pages"] = math.ceil(float(args["total_paste_count"]) / float(PASTES_PER_PAGE))
+    
+    return render(request, "users/profile/pastes/pastes.html", args)
+    
+def favorites(request, user, args, page=1):
     """
     Show all of user's favorites
     """
-    pass
+    FAVORITES_PER_PAGE = 30
+    offset = (page-1) * FAVORITES_PER_PAGE
+    
+    args["favorites"] = Favorite.get_favorites(user, count=FAVORITES_PER_PAGE, offset=offset)
+    args["pages"] = Paginator.get_pages(page, FAVORITES_PER_PAGE, args["total_favorite_count"])
+    args["total_pages"] = math.ceil(float(args["total_favorite_count"]) / float(FAVORITES_PER_PAGE))
+    
+    return render(request, "users/profile/favorites/favorites.html", args)

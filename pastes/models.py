@@ -1,6 +1,10 @@
 from django.db import transaction, connection
 from sql import cursor
 
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import HtmlFormatter
+
 import random
 import string
 import hashlib
@@ -155,6 +159,7 @@ class Paste(object):
             cursor.query(query, [char_id, user_id, title, hash, expiration_datetime, hidden, submitted])
             
             PasteContent.add_paste_text(text)
+            PasteContent.add_paste_text(text, "text")
         
         return char_id
     
@@ -236,14 +241,14 @@ class PasteContent(object):
     Handles paste text, which are identified by hashes instead of paste identifiers
     """
     @staticmethod
-    def get_paste_text(hash, formatted=False):
+    def get_paste_text(hash, format="text"):
         """
         Returns paste text, either as-is or formatted to be displayed in HTML
         """
         query = """SELECT * FROM paste_content
-                   WHERE hash = %s"""
+                   WHERE hash = %s AND format = %s"""
                    
-        paste_content = cursor.query_to_dict(query, [hash])
+        paste_content = cursor.query_to_dict(query, [hash, format])
         
         if paste_content is not None:
             return paste_content["text"]
@@ -251,18 +256,34 @@ class PasteContent(object):
             return None
         
     @staticmethod
-    def add_paste_text(text):
+    def add_paste_text(text, format=None):
         """
         Adds paste text if it hasn't been added yet
+        
+        If format other than None is provided, Pygments will be used to highlight the text
         """
         hash = hashlib.sha256(text).hexdigest()
         
+        if format != None:
+            text = PasteContent.format_text(text, format)
+        
         # Insert into paste_content only if a row with the same hash doesn't exist
-        query = """INSERT INTO paste_content (hash, text, formatted_text)
+        query = """INSERT INTO paste_content (hash, format, text)
                    SELECT %s, %s, %s
-                   WHERE NOT EXISTS ( SELECT 1 FROM paste_content WHERE hash = %s )"""
+                   WHERE NOT EXISTS ( SELECT 1 FROM paste_content WHERE hash = %s AND format = %s )"""
                    
-        cursor.query(query, [hash, text, text, hash])
+        cursor.query(query, [hash, format, text, hash, format])
+        
+    @staticmethod
+    def format_text(text, format="text"):
+        """
+        Format the text using Pygments and return the formatted text
+        """
+        lexer = get_lexer_by_name(format)
+        formatter = HtmlFormatter(linenos=True)
+        result = highlight(text, lexer, formatter)
+        
+        return result
         
 class LatestPastes(object):
     @staticmethod

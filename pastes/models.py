@@ -1,9 +1,7 @@
 from django.db import transaction, connection
 from sql import cursor
 
-from pygments import highlight
-from pygments.lexers import get_lexer_by_name
-from pygments.formatters import HtmlFormatter
+import highlighting
 
 import random
 import string
@@ -68,14 +66,14 @@ class Paste(object):
         return ''.join(random.SystemRandom().choice(string.uppercase + string.lowercase + string.digits) for _ in xrange(8))
         
     @staticmethod
-    def get_paste(id=None, char_id=None, include_text=False):
+    def get_paste(id=None, char_id=None, include_text=False, formatted=False):
         """
         Get paste by either its numeric ID or char ID
         
         if include_text is True, also include the text content as well
         """
         query = """SELECT pastes.id, char_id, user_id, auth_user.username AS username, title,
-                          hash, expiration_date, hidden, submitted FROM pastes
+                          hash, format, expiration_date, hidden, submitted FROM pastes
                    LEFT JOIN auth_user ON pastes.user_id = auth_user.id"""
         
         if id != None:
@@ -89,7 +87,10 @@ class Paste(object):
             return None
             
         if include_text:
-            paste_text = PasteContent.get_paste_text(paste["hash"])
+            if formatted:
+                paste_text = PasteContent.get_paste_text(paste["hash"], paste["format"])
+            else:
+                paste_text = PasteContent.get_paste_text(paste["hash"], None)
             paste["text"] = paste_text
            
         return paste
@@ -125,14 +126,14 @@ class Paste(object):
             return False
     
     @staticmethod
-    def add_paste(text, user=None, title="Untitled", expiration=None, visibility=None):
+    def add_paste(text, user=None, title="Untitled", expiration=None, visibility=None, format="text"):
         """
         Add paste with the provided title and text
         
         Returns the paste's char ID if the paste was successfully added, False otherwise
         """
-        query = """INSERT INTO pastes (char_id, user_id, title, hash, expiration_date, hidden, submitted)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+        query = """INSERT INTO pastes (char_id, user_id, title, hash, format, expiration_date, hidden, submitted)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
         
         # Generate a random 8 character string for the char ID
         char_id = Paste.get_random_char_id()
@@ -156,10 +157,11 @@ class Paste(object):
             
         # Add paste in a transaction
         with transaction.atomic():
-            cursor.query(query, [char_id, user_id, title, hash, expiration_datetime, hidden, submitted])
+            cursor.query(query, [char_id, user_id, title, hash, format, expiration_datetime, hidden, submitted])
             
-            PasteContent.add_paste_text(text)
-            PasteContent.add_paste_text(text, "text")
+            # Save the paste content both as raw text and with formatting
+            PasteContent.add_paste_text(text, None)
+            PasteContent.add_paste_text(text, format)
         
         return char_id
     
@@ -248,6 +250,9 @@ class PasteContent(object):
         query = """SELECT * FROM paste_content
                    WHERE hash = %s AND format = %s"""
                    
+        if format == None:
+            format = "none"
+                   
         paste_content = cursor.query_to_dict(query, [hash, format])
         
         if paste_content is not None:
@@ -265,7 +270,9 @@ class PasteContent(object):
         hash = hashlib.sha256(text).hexdigest()
         
         if format != None:
-            text = PasteContent.format_text(text, format)
+            text = highlighting.format_text(text, format)
+        elif format == None:
+            format = "none"
         
         # Insert into paste_content only if a row with the same hash doesn't exist
         query = """INSERT INTO paste_content (hash, format, text)
@@ -273,17 +280,6 @@ class PasteContent(object):
                    WHERE NOT EXISTS ( SELECT 1 FROM paste_content WHERE hash = %s AND format = %s )"""
                    
         cursor.query(query, [hash, format, text, hash, format])
-        
-    @staticmethod
-    def format_text(text, format="text"):
-        """
-        Format the text using Pygments and return the formatted text
-        """
-        lexer = get_lexer_by_name(format)
-        formatter = HtmlFormatter(linenos=True)
-        result = highlight(text, lexer, formatter)
-        
-        return result
         
 class LatestPastes(object):
     @staticmethod

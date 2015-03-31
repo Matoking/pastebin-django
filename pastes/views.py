@@ -23,11 +23,12 @@ def submit_paste(request):
         if request.user.is_authenticated():
             user = request.user
         
-        char_id = Paste.add_paste(title=paste_data["paste_title"],
+        char_id = Paste.add_paste(title=paste_data["title"],
                                   user=user,
-                                  text=paste_data["paste_text"],
-                                  expiration=paste_data["paste_expiration"],
-                                  visibility=paste_data["paste_visibility"])
+                                  text=paste_data["text"],
+                                  expiration=paste_data["expiration"],
+                                  visibility=paste_data["visibility"],
+                                  format=paste_data["syntax_highlighting"])
         
         # Redirect to the newly created paste
         return redirect("show_paste", char_id=char_id)
@@ -43,7 +44,12 @@ def show_paste(request, char_id, raw=False, download=False):
     if Paste.is_paste_expired(char_id=char_id):
         return render(request, "pastes/show_paste/show_error.html", {"reason": "expired"}, status=404)
     
-    paste = Paste.get_paste(char_id=char_id, include_text=True)
+    # Get the formatted paste text unless the user is downloading the paste or viewing it as raw text
+    formatted = True
+    if raw == True or download == True:
+        formatted = False
+    
+    paste = Paste.get_paste(char_id=char_id, include_text=True, formatted=formatted)
     
     if paste == None:
         return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)

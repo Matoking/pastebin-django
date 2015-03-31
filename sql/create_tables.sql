@@ -5,6 +5,7 @@ CREATE TABLE pastes (
 	user_id INTEGER DEFAULT NULL REFERENCES auth_user(id), -- reference to registered user as defined by Django, can be NULL
 	
 	title VARCHAR(128) NOT NULL, -- Title of the paste
+	format VARCHAR(32) NOT NULL, -- Formatting of the text (eg. "text" for plain text, "python" for Python code)
 	hash CHAR(64) NOT NULL, -- Hash of the paste's text (SHA256, probably a bit overkill),
 						 	-- which is then used as the identifier to the actual paste content
 						 	-- This means duplicate pastes don't waste space
@@ -24,8 +25,8 @@ CREATE INDEX char_id_index ON pastes(char_id);
 CREATE TABLE paste_content (
 	id SERIAL PRIMARY KEY,
 	hash CHAR(64) NOT NULL,
-	format VARCHAR(32), -- Formatting of the text. If NULL, the text isn't formatted and is stored in its original form
-	text VARCHAR(200000) NOT NULL
+	format VARCHAR(32) NOT NULL, -- Formatting of the text. If "none", the text isn't formatted and is stored in its original form
+	text TEXT NOT NULL
 );
 
 CREATE INDEX paste_content_id_index ON paste_content(id);

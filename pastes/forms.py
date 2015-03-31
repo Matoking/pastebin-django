@@ -1,6 +1,8 @@
 from django import forms
 from pastes.models import Paste
 
+import highlighting
+
 class SubmitPasteForm(forms.Form):
     """
     Form to submit the paste
@@ -21,14 +23,16 @@ class SubmitPasteForm(forms.Form):
         (Paste.ONE_MONTH, "1 month"),
     )
     
-    paste_title = forms.CharField(max_length=128,
-                                  initial="Untitled",
-                                  required=False)
-    paste_text = forms.CharField(min_length=1,
-                                 max_length=100000)
-    paste_expiration = forms.ChoiceField(choices=EXPIRATION_CHOICES)
+    title = forms.CharField(max_length=128,
+                            initial="Untitled",
+                            required=False)
+    text = forms.CharField(min_length=1,
+                           max_length=100000)
+    expiration = forms.ChoiceField(choices=EXPIRATION_CHOICES)
 
-    paste_visibility = forms.ChoiceField(choices=VISIBILITY_CHOICES)
+    visibility = forms.ChoiceField(choices=VISIBILITY_CHOICES)
+    
+    syntax_highlighting = forms.ChoiceField(choices=highlighting.settings.LANGUAGES)
     
     def clean(self):
         """
@@ -37,5 +41,5 @@ class SubmitPasteForm(forms.Form):
         self.cleaned_data = super(SubmitPasteForm, self).clean()
         
         # If user provides an empty title, replace it with Untitled
-        if self.cleaned_data["paste_title"].strip() == "":
-            self.cleaned_data["paste_title"] = "Untitled"
+        if self.cleaned_data["title"].strip() == "":
+            self.cleaned_data["title"] = "Untitled"

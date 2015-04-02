@@ -2,7 +2,10 @@ from pygments.formatters import HtmlFormatter
 
 class ListHtmlFormatter(HtmlFormatter):
     """
-    Wraps the code inside an <ol> element, which works nicely with line wrapping
+    Wraps the code inside an <ol> element and each individual line around a <li> element,
+    giving us both free line numbers and better behavior with line wrapping.
+    
+    This imitates how GeSHi renders its highlighted code.
     """
     def wrap(self, source, outfile):
         return self._wrap_ol(source)

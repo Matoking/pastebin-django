@@ -8,6 +8,7 @@ urlpatterns = patterns('',
     url(r'^login/', views.login_view, name="login"),
     url(r'^logout/', views.logout_view, name="logout"),
     
+    # Public profile pages
     url(r'^(?P<username>\w+)/pastes/(?P<page>\d+)', views.profile, {"tab": "pastes"}, name="pastes"),
     url(r'^(?P<username>\w+)/pastes', views.profile, {"tab": "pastes",
                                                       "page": 1}, name="pastes"),
@@ -17,4 +18,8 @@ urlpatterns = patterns('',
                                                          "page": 1}, name="favorites"),
     
     url(r'^(?P<username>\w+)/$', views.profile, {"tab": "home"}, name="profile"),
+    
+    # User settings
+    url(r'^(?P<username>\w+)/change_password', views.settings, {"tab": "change_password"}, name="change_password"),
+    url(r'^(?P<username>\w+)/delete_account', views.settings, {"tab": "delete_account"}, name="delete_account"),
 )

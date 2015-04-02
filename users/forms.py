@@ -65,18 +65,68 @@ class LoginForm(forms.Form):
     password = forms.CharField(max_length=128,
                                widget = forms.TextInput(attrs={ 'type': 'password' }))
     
+class ChangePasswordForm(forms.Form):
+    """
+    Form to change the user's password
+    """
+    current_password = forms.CharField(max_length=128,
+                                       widget=forms.TextInput(attrs={'type': 'password'}))
+    
+    new_password = forms.CharField(min_length=6,
+                                   max_length=128,
+                                   widget=forms.TextInput(attrs={'type': 'password'}))
+    confirm_new_password = forms.CharField(min_length=6,
+                                           max_length=128,
+                                           widget=forms.TextInput(attrs={'type': 'password'}))
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        
+        if self.user == None:
+            raise AttributeError("'%s' requires a valid Django user object as its user parameter" % self.__class__.__name__)
+        
+        super(ChangePasswordForm, self).__init__(*args, **kwargs)
+        
+    def clean_current_password(self):
+        """
+        Check that the user has logged in and provided the correct password
+        """
+        if not self.user or not self.user.is_authenticated():
+            raise forms.ValidationError("You are not logged in.")
+        
+        password = self.cleaned_data.get('current_password')
+        
+        if authenticate(username=self.user.username, password=password) == None:
+            raise forms.ValidationError("The provided password was not correct")
+        
+        return password
+    
+    def clean_confirm_new_password(self):
+        """
+        Check that the provided new passwords match
+        """
+        new_password = self.cleaned_data.get("new_password")
+        confirm_new_password = self.cleaned_data.get("confirm_new_password")
+        
+        if new_password != confirm_new_password:
+            raise forms.ValidationError("The provided passwords didn't match.")
+        
+        return confirm_new_password
+    
 class VerifyPasswordForm(forms.Form):
     """
     Form to verify the user's password
-    
-    request.user needs to be passed onto this form or otherwise it won't work!
     """
     password = forms.CharField(max_length=128,
-                               widget = forms.TextInput(attrs={ 'type': 'password' }),
+                               widget=forms.TextInput(attrs={ 'type': 'password' }),
                                help_text="You need to enter your password to perform this action.")
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        
+        if self.user == None:
+            raise AttributeError("'%s' requires a valid Django user object as its user parameter" % self.__class__.__name__)
+        
         super(VerifyPasswordForm, self).__init__(*args, **kwargs)
     
     def clean_password(self):

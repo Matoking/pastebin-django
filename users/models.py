@@ -1,4 +1,6 @@
-from django.db import models
+from django.db import models, transaction
+from django.contrib.auth.models import User
+
 from sql import cursor
 
 from pastes.models import Paste
@@ -92,3 +94,30 @@ class Favorite(object):
         result = cursor.query_to_dict(query, [user.id])
         
         return result["count"]
+    
+class PastebinUser(object):
+    @staticmethod
+    def delete_user(user):
+        """
+        Deletes an user as well as all of his pastes
+        """
+        with transaction.atomic():
+            # Delete favorites
+            query = """DELETE FROM favorites
+                       WHERE EXISTS (SELECT id FROM pastes WHERE id = favorites.paste_id AND user_id = %s)"""
+                       
+            cursor.query(query, [user.id])
+            
+            # Delete pastes
+            query = """DELETE FROM pastes
+                       WHERE user_id = %s"""
+                       
+            cursor.query(query, [user.id])
+            
+            # Django recommends setting User's is_active property to False instead of
+            # deleting it entirely, as it may break foreign keys
+            query = """UPDATE auth_user
+                       SET is_active = FALSE
+                       WHERE id = %s"""
+                       
+            cursor.query(query, [user.id])

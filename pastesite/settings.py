@@ -91,8 +91,13 @@ DATABASES = {
         'PASSWORD': 'superpass',
         'HOST': 'localhost',
         'PORT': '', # Default
+        'TEST': {
+            'NAME': 'test_pastesite',
+        },
     }
 }
+
+TEST_RUNNER = "pastesite.testrunner.SQLTestRunner"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/

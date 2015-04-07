@@ -38,7 +38,7 @@ def query_to_dict(query, query_args):
     else:
         return result[0]
     
-def query(query, query_args):
+def query(query, query_args=[]):
     """
     Performs a query, raising any possible exceptions
     """

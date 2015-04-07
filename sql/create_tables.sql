@@ -37,7 +37,7 @@ CREATE TABLE comments (
 	paste_id INTEGER REFERENCES pastes(id),
 	user_id INTEGER REFERENCES auth_user(id),
 	
-	text VARCHAR(2048) NOT NULL, -- the actual comment
+	text TEXT NOT NULL, -- the actual comment
 	
 	submitted TIMESTAMP NOT NULL
 );

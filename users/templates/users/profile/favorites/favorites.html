@@ -21,7 +21,7 @@
 	</table>
 	{% include "pagination.html" with destination="users:favorites" url_arg=profile_user.get_username %}
 	{% else %}
-		{% if profile_username == user.get_username %}
+		{% if profile_user.get_username == user.get_username %}
 		<div class="alert alert-info">
 			<strong>No favorites added</strong><br>
 			You haven't added any favorites yet.

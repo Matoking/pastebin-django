@@ -21,7 +21,7 @@
 	</table>
 	{% include "pagination.html" with destination="users:pastes" url_arg=profile_user.get_username %}
 	{% else %}
-		{% if profile_username == user.get_username %}
+		{% if profile_user.get_username == user.get_username %}
 		<div class="alert alert-info">
 			<strong>No pastes uploaded</strong><br>
 			You haven't uploaded any pastes yet.

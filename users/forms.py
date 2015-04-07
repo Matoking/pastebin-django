@@ -45,6 +45,14 @@ class RegisterForm(forms.Form):
         
         return username
     
+    def clean_password(self):
+        password = self.cleaned_data.get("password")
+        
+        if password == "correct horse battery staple":
+            raise forms.ValidationError("You'll have to pick a better password than that.")
+        
+        return password
+    
     def clean_confirm_password(self):
         """
         Check that the provided passwords match

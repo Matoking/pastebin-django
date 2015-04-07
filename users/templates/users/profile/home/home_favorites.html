@@ -20,7 +20,7 @@
 	</tbody>
 </table>
 {% else %}
-	{% if profile_username == user.get_username %}
+	{% if profile_user.get_username == user.get_username %}
 	<div class="alert alert-info">
 		<strong>No favorites added</strong><br>
 		You haven't added any favorites yet.

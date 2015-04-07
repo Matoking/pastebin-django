@@ -150,7 +150,7 @@ class Paste(object):
         if user is not None:
             user_id = user.id
             
-        if expiration != Paste.NEVER:
+        if expiration != Paste.NEVER and expiration != None:
             expiration_datetime = Paste.get_expiration_datetime(expiration)
         else:
             expiration_datetime = None

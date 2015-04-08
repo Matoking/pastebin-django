@@ -1,6 +1,8 @@
-<form action="{% url 'pastes:submit_paste' %}" method="post" class="form-horizontal">
+<form action="{% url 'home:home' %}" method="post" class="form-horizontal">
 	{% csrf_token %}
-	<textarea name="text" class="form-control paste-text-field" rows="15"></textarea>
+	<div class="{% if form.text.errors %}has-error{% endif %}">
+		<textarea name="text" class="form-control paste-text-field {% if form.text.errors %}has-error{% endif %}" rows="15"></textarea>
+	</div>
 	<br>
 	{% if user.is_authenticated %}
 	<div class="form-group">
@@ -10,52 +12,17 @@
 		</div>
 	</div>
 	{% endif %}
-	<!-- Title -->
-	<div class="form-group">
-		<label for="title" class="col-sm-2 control-label">Title</label>
-		<div class="col-sm-8">
-			<input type="text" class="form-control" name="title" placeholder="Untitled">
-		</div>
+	{# Print errors related to the text field here #}
+	{% if form.text.errors %}
+	<div class="alert alert-danger">
+		{{ form.text.errors }}
 	</div>
-	<!-- Paste expiration -->
-	<div class="form-group">
-		<label for="expiration" class="col-sm-2 control-label">Expires after</label>
-		<div class="col-sm-8">
-			<select name="expiration" class="form-control">
-				<option selected="selected" value="never">Never</option>
-				<option value="15m">15 minutes</option>
-				<option value="1h">1 hour</option>
-				<option value="1d">1 day</option>
-				<option value="1w">1 week</option>
-				<option value="1month">1 month</option>
-			</select>
-		</div>
-	</div>
-	<!-- Paste visibility -->
-	<div class="form-group">
-		<label for="visibility" class="col-sm-2 control-label">Visibility</label>
-		<div class="col-sm-8">
-			<select name="visibility" class="form-control">
-				<option selected="selected" value="public">Public</option>
-				<option value="hidden">Hidden</option>
-			</select>
-		</div>
-	</div>
-	<!-- Syntax highlighting -->
-	<div class="form-group">
-		<label for="syntax_highlighting" class="col-sm-2 control-label">Syntax highlighting</label>
-		<div class="col-sm-8">
-			<select name="syntax_highlighting" class="form-control">
-				{% for language_shortname, language_name in languages %}
-				<option value="{{ language_shortname }}">{{ language_name }}</option>
-				{% endfor %}
-			</select>
-		</div>
-	</div>
+	{% endif %}
+	{% include "form.html" with form_label_col=2 form_field_col=8 exclude="text" %}
 	<!-- Submit -->
 	<div class="form-group">
 		<div class="col-sm-offset-2 col-sm-10">
-			<button class="btn btn-primary">Submit Paste</button>
+			<button class="btn btn-primary">Submit paste</button>
 		</div>
 	</div>
 </form>

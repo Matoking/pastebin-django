@@ -28,6 +28,7 @@ Test credentials
 You can login using the following credentials. Well, until someone either changes the password or deletes the user altogether.
 
 Username: TestUser
+
 Password: testme
 
 Alternatively, you can register an account at the site and use that instead.

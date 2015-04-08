@@ -1,40 +1,15 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 
-from pastes.forms import SubmitPasteForm
+from pastes.forms import SubmitPasteForm, EditPasteForm
 from pastes.models import Paste
+
+from comments.models import Comment
 
 from users.models import Favorite
 from users.forms import VerifyPasswordForm
 
 import json
-
-def submit_paste(request):
-    """
-    Process paste data received from a form, and if the paste is uploaded correctly,
-    redirect the user to it
-    """
-    submit_paste_form = SubmitPasteForm(request.POST or None)
-    
-    if submit_paste_form.is_valid():
-        paste_data = submit_paste_form.cleaned_data
-        
-        user = None
-        if request.user.is_authenticated():
-            user = request.user
-        
-        char_id = Paste.add_paste(title=paste_data["title"],
-                                  user=user,
-                                  text=paste_data["text"],
-                                  expiration=paste_data["expiration"],
-                                  visibility=paste_data["visibility"],
-                                  format=paste_data["syntax_highlighting"])
-        
-        # Redirect to the newly created paste
-        return redirect("show_paste", char_id=char_id)
-    else:
-        # On error, redirect to home
-        return redirect("home:home")
     
 def show_paste(request, char_id, raw=False, download=False):
     """
@@ -68,8 +43,29 @@ def show_paste(request, char_id, raw=False, download=False):
         if request.user.is_authenticated():
             paste_favorited = Favorite.is_paste_favorited(request.user, id=paste["id"])
             
+        comment_count = Comment.get_comment_count(paste_id=paste["id"])
+            
         return render(request, "pastes/show_paste/show_paste.html", {"paste": paste,
-                                                                     "paste_favorited": paste_favorited})
+                                                                     "paste_favorited": paste_favorited,
+                                                                     
+                                                                     "comment_count": comment_count})
+        
+def edit_paste(request, char_id):
+    """
+    Edit the paste
+    """
+    paste = Paste.get_paste(char_id=char_id, include_text=True, formatted=False)
+    
+    edit_form = EditPasteForm(request.POST or None)
+    
+    if edit_form.is_valid():
+        cleaned_data = edit_form.cleaned_data
+        
+        Paste.change_paste_text(cleaned_data["text"], id=paste["id"])
+        
+        return redirect("show_paste", char_id=char_id)
+    
+    return render(request, "pastes/edit_paste/edit_paste.html", {"paste": paste})
         
 def delete_paste(request, char_id):
     """

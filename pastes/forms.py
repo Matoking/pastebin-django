@@ -15,7 +15,7 @@ class SubmitPasteForm(forms.Form):
     )
     
     EXPIRATION_CHOICES = (
-        (Paste.NEVER, "never"),
+        (Paste.NEVER, "Never"),
         (Paste.FIFTEEN_MINUTES, "15 minutes"),
         (Paste.ONE_HOUR, "1 hour"),
         (Paste.ONE_DAY, "1 day"),
@@ -24,8 +24,8 @@ class SubmitPasteForm(forms.Form):
     )
     
     title = forms.CharField(max_length=128,
-                            initial="Untitled",
-                            required=False)
+                            required=False,
+                            widget=forms.TextInput(attrs={"placeholder": "Untitled"}))
     text = forms.CharField(min_length=1,
                            max_length=100000)
     expiration = forms.ChoiceField(choices=EXPIRATION_CHOICES)
@@ -34,12 +34,21 @@ class SubmitPasteForm(forms.Form):
     
     syntax_highlighting = forms.ChoiceField(choices=highlighting.settings.LANGUAGES)
     
-    def clean(self):
+    def clean_title(self):
         """
-        Override the clean procedure to handle empty paste titles
+        Replace the title with Untitled if it is not provided
         """
-        self.cleaned_data = super(SubmitPasteForm, self).clean()
+        title = self.cleaned_data.get("title")
         
         # If user provides an empty title, replace it with Untitled
-        if self.cleaned_data["title"].strip() == "":
-            self.cleaned_data["title"] = "Untitled"
+        if title.strip() == "":
+            title = "Untitled"
+            
+        return title
+    
+class EditPasteForm(forms.Form):
+    """
+    Form to edit the paste
+    """
+    text = forms.CharField(min_length=1,
+                           max_length=100000)

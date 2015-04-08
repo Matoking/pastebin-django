@@ -77,7 +77,7 @@ class Paste(object):
                    LEFT JOIN auth_user ON pastes.user_id = auth_user.id"""
         
         if id != None:
-            query += "\nWHERE id = %s"
+            query += "\nWHERE pastes.id = %s"
             paste = cursor.query_to_dict(query, [id])
         elif char_id != None:
             query += "\nWHERE char_id = %s"
@@ -164,6 +164,31 @@ class Paste(object):
             PasteContent.add_paste_text(text, format)
         
         return char_id
+    
+    @staticmethod
+    def change_paste_text(text, id=None, char_id=None):
+        """
+        Change the paste text on an existing paste
+        """
+        if char_id != None:
+            id = Paste.get_id(char_id)
+            
+        hash = hashlib.sha256(text).hexdigest()
+            
+        paste = Paste.get_paste(id=id)
+            
+        with transaction.atomic():
+            # Save the new paste content both as raw text and with formatting
+            PasteContent.add_paste_text(text, None)
+            PasteContent.add_paste_text(text, paste["format"])
+            
+            query = """UPDATE pastes
+                       SET hash = %s
+                       WHERE id = %s"""
+                       
+            print(query)
+                       
+            cursor.query(query, [hash, id])
     
     @staticmethod
     def delete_paste(id=None, char_id=None):

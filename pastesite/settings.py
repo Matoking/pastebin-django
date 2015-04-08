@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'home',
     'pastes',
     'users',
+    'comments',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (

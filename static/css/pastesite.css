@@ -4,6 +4,10 @@
     resize: none;
 }
 
+.comment-text-field {
+	resize: none;
+}
+
 .latest-pastes-table {
 	font-size: 8pt;
 }

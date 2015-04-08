@@ -8,6 +8,7 @@
 			<tr>
 				<th>Title</th>
 				<th>Uploaded</th>
+				<th>Actions</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -15,6 +16,10 @@
 			<tr>
 				<td><a href="{% url "show_paste" paste.char_id %}">{{ paste.title|truncatechars:128 }}</a></td>
 				<td>{{ paste.submitted }}</td>
+				<td>
+					<a class="btn btn-primary btn-xs" href="{% url "pastes:edit_paste" paste.char_id %}"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+					<a class="btn btn-danger btn-xs" href="{% url "pastes:delete_paste" paste.char_id %}"><span class="glyphicon glyphicon-remove"></span> Delete</a>
+				</td>
 			</tr>
 			{% endfor %}
 		</tbody>

@@ -54,7 +54,16 @@ def edit_paste(request, char_id):
     """
     Edit the paste
     """
+    if not request.user.is_authenticated():
+        return render(request, "pastes/edit_paste/edit_error.html", {"reason": "not_logged_in"})
+    
     paste = Paste.get_paste(char_id=char_id, include_text=True, formatted=False)
+    
+    if paste == None:
+        return render(request, "pastes/edit_paste/edit_error.html", {"reason": "not_found"})
+    
+    if paste["user_id"] != request.user.id:
+        return render(request, "pastes/edit_paste/edit_error.html", {"reason": "not_owner"})
     
     edit_form = EditPasteForm(request.POST or None)
     

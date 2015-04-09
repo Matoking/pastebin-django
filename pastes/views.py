@@ -65,16 +65,29 @@ def edit_paste(request, char_id):
     if paste["user_id"] != request.user.id:
         return render(request, "pastes/edit_paste/edit_error.html", {"reason": "not_owner"})
     
-    edit_form = EditPasteForm(request.POST or None)
+    if paste["hidden"]:
+        visibility = "hidden"
+    else:
+        visibility = "public"
+    
+    edit_form = EditPasteForm(request.POST or None, initial={"title": paste["title"],
+                                                             "visibility": visibility,
+                                                             "syntax_highlighting": paste["format"]})
     
     if edit_form.is_valid():
-        cleaned_data = edit_form.cleaned_data
+        paste_data = edit_form.cleaned_data
         
-        Paste.change_paste_text(cleaned_data["text"], id=paste["id"])
+        Paste.update_paste(id=paste["id"],
+                           title=paste_data["title"],
+                           text=paste_data["text"],
+                           visibility=paste_data["visibility"],
+                           format=paste_data["syntax_highlighting"])
         
         return redirect("show_paste", char_id=char_id)
     
-    return render(request, "pastes/edit_paste/edit_paste.html", {"paste": paste})
+    return render(request, "pastes/edit_paste/edit_paste.html", {"paste": paste,
+                                                                 
+                                                                 "form": edit_form})
         
 def delete_paste(request, char_id):
     """

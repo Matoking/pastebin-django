@@ -19,6 +19,7 @@
 					{{ form.text.errors }}
 				</div>
 				{% endif %}
+				{% include "form.html" with form_label_col=2 form_field_col=8 exclude="text" %}
 				<div class="form-group">
 		            <div class="col-sm-offset-2 col-sm-10">
 		                <button type="submit" class="btn btn-primary">Update</button>

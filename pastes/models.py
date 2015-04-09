@@ -166,29 +166,31 @@ class Paste(object):
         return char_id
     
     @staticmethod
-    def change_paste_text(text, id=None, char_id=None):
+    def update_paste(id=None, char_id=None, text="", title="", visibility=None, format="text"):
         """
         Change the paste text on an existing paste
         """
         if char_id != None:
             id = Paste.get_id(char_id)
             
-        hash = hashlib.sha256(text).hexdigest()
+        # Make paste hidden if its visibility is hidden (private visibility may be added later)
+        if visibility == Paste.HIDDEN:
+            hidden = True
+        else:
+            hidden = False
             
-        paste = Paste.get_paste(id=id)
+        hash = hashlib.sha256(text).hexdigest()
             
         with transaction.atomic():
             # Save the new paste content both as raw text and with formatting
             PasteContent.add_paste_text(text, None)
-            PasteContent.add_paste_text(text, paste["format"])
+            PasteContent.add_paste_text(text, format)
             
             query = """UPDATE pastes
-                       SET hash = %s
+                       SET hash = %s, title = %s, hidden = %s, format = %s
                        WHERE id = %s"""
                        
-            print(query)
-                       
-            cursor.query(query, [hash, id])
+            cursor.query(query, [hash, title, hidden, format, id])
     
     @staticmethod
     def delete_paste(id=None, char_id=None):

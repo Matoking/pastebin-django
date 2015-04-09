@@ -50,5 +50,22 @@ class EditPasteForm(forms.Form):
     """
     Form to edit the paste
     """
+    title = forms.CharField(max_length=128,
+                            required=False,
+                            widget=forms.TextInput(attrs={"placeholder": "Untitled"}))
+    visibility = forms.ChoiceField(choices=SubmitPasteForm.VISIBILITY_CHOICES)
+    
+    syntax_highlighting = forms.ChoiceField(choices=highlighting.settings.LANGUAGES)
     text = forms.CharField(min_length=1,
                            max_length=100000)
+    
+    def clean_title(self):
+        """
+        Replace an empty title with "Untitled"
+        """
+        title = self.cleaned_data.get("title")
+        
+        if title.strip() == "":
+            title = "Untitled"
+            
+        return title

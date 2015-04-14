@@ -121,23 +121,26 @@ def change_paste_favorite(request):
     """
     Add/remove paste from user's favorites, and respond with JSON
     """
-    response = {"action": "none"}
+    response = {"status": "success",
+                "data": {}}
     
     char_id = None or request.POST["char_id"]
     action = None or request.POST["action"]
     
     if not request.user.is_authenticated():
-        response["error"] = "not_logged_in"
+        response["status"] = "fail"
+        response["data"]["message"] = "Not logged in."
     else:
         if action == "add":
             result = Favorite.add_favorite(request.user, char_id=char_id)
-            response["action"] = "added_favorite"
-            response["result"] = result
+            response["data"]["char_id"] = char_id
+            response["data"]["favorited"] = True
         elif action == "remove":
             result = Favorite.remove_favorite(request.user, char_id=char_id)
-            response["action"] = "removed_favorite"
-            response["result"] = result
+            response["data"]["char_id"] = char_id
+            response["data"]["favorited"] = False
         else:
-            response["error"] = "valid_action_not_provided"
+            response["status"] = "fail"
+            response["data"]["message"] = "Valid action wasn't provided."
             
     return HttpResponse(json.dumps(response))

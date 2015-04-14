@@ -39,7 +39,8 @@ CREATE TABLE comments (
 	
 	text TEXT NOT NULL, -- the actual comment
 	
-	submitted TIMESTAMP NOT NULL
+	submitted TIMESTAMP NOT NULL,
+	edited TIMESTAMP DEFAULT NULL
 );
 
 CREATE INDEX comment_id_index ON comments(id);

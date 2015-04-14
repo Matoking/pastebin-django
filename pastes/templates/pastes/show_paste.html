@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load extra_tags %}
+
+{% block title %}{{ paste.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<br>
+			<div class="panel panel-info">
+				<div class="panel-heading">
+					<h1 class="panel-title">{{ paste.title }}</h1>
+				</div>
+				<div class="panel-body">
+					<div class="container">
+						<div class="col-md-3">
+							<p><b>SUBMITTED BY:</b> {% if paste.username %}<b>{{ paste.username }}</b>{% else %}Guest{% endif %}</p>
+							<p><b>DATE:</b> {{ paste.submitted }}</p>
+							{% if paste.expiration_date %}
+								{% with timesince_seconds=paste.expiration_date|timeuntil_in_seconds %}
+									<p><b style="color: red;">EXPIRES IN:</b> {% seconds_to_str timesince_seconds %}</p>
+								{% endwith %}
+							{% endif %}
+						</div>
+						<div class="col-md-3">
+							<a class="btn btn-primary btn-sm" href="{% url "raw_paste" paste.char_id %}"><span class="glyphicon glyphicon-font"></span> Raw</a>
+							<a class="btn btn-primary btn-sm" href="{% url "download_paste" paste.char_id %}"><span class="glyphicon glyphicon-download"></span> Download</a>
+						</div>
+						<div class="col-md-3">
+							<p><b>COMMENTS: </b> 242</p>
+							<button type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-menu-down"></span> Go to comments</button>
+						</div>
+						<div class="col-md-3">
+							<button type="button" class="btn btn-info btn-sm">Share</button>
+							<button type="button" class="btn btn-success btn-sm">Like</button>
+							<button type="button" class="btn btn-warning btn-sm">Tweet</button>
+							<button type="button" class="btn btn-warning btn-sm">Toot</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<hr>
+			<pre>{{ paste.text }}</pre>
+			<!-- Comments -->
+			<hr>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<button type="button" class="btn btn-info btn-sm">Show comments (242)</button>
+				</div>
+				<div style="display: none;" class="panel-body">
+					<div class="container">
+						<p>Placeholder</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

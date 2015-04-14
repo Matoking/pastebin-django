@@ -15,7 +15,21 @@ pastebin.loadComments = function() {
 	    }
 	});
 	
-	pastebin.updateFavoriteButton();
+	pastebin.updateComments();
+};
+
+/**
+ * Get and update the comments for a specific page (first page if not defined)
+ */
+pastebin.getComments = function(page) {
+	page = typeof page !== 'undefined' ? page : 0;
+	
+	$.post(window.location.protocol + "//" + window.location.host + "/comments/get_comments",
+		   {char_id: pastebin_char_id,
+		    page: page},
+		   function(result) {
+		    	pastebin.onCommentsLoaded(result);
+		   });
 };
 
 //Delay execution until the page and jQuery have loaded

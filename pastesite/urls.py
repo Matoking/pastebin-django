@@ -17,6 +17,7 @@ urlpatterns = patterns('',
     url(r'^$', include("home.urls", namespace="home")),
     url(r'^pastes/', include("pastes.urls", namespace="pastes")),
     url(r'^users/', include("users.urls", namespace="users")),
+    url(r'^comments/', include("comments.urls", namespace="comments")),
     
     url(r'^(?P<char_id>\w{8})/raw', paste_views.show_paste, {"raw": True}, name="raw_paste"),
     url(r'^(?P<char_id>\w{8})/download', paste_views.show_paste, {"download": True}, name="download_paste"),

@@ -81,10 +81,10 @@ pastebin.removeFromFavorites = function() {
 pastebin.onFavoriteUpdated = function(result) {
 	result = JSON.parse(result);
 	
-	if ("action" in result) {
-		if (result["action"] == "added_favorite") {
+	if ("status" in result.data && result.data.status == "success") {
+		if (result.data["favorited"]) {
 			pastebin_paste_favorited = true;
-		} else if (result["action"] == "removed_favorite") {
+		} else {
 			pastebin_paste_favorited = false;
 		}
 	}

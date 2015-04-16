@@ -76,6 +76,13 @@ pastebin.showComments = function(page) {
 };
 
 /**
+ * Show the selected page of comments
+ */
+pastebin.selectPage = function(page) {
+	pastebin.showComments(page);
+};
+
+/**
  * Get and update the comments for a specific page (first page if not defined)
  */
 pastebin.getComments = function(page) {
@@ -138,6 +145,7 @@ pastebin.onCommentsLoaded = function(result) {
 	
 	pastebin.updateComments();
 	pastebin.updateCommentPaginator();
+	pastebin.resetCommentForm();
 };
 
 /**
@@ -251,6 +259,11 @@ pastebin.resetCommentForm = function() {
 	$("#submit-comment-form").find(".comment-form-errors").hide();
 	$("#submit-comment-form").find(".comment-text-field").val("");
 	$("#submit-comment-form").find(".comment-form-button").attr("disabled", false);
+	
+	// If the user is not logged in, don't show the form to submit comments
+	if (!pastebin_logged_in) {
+		$("#submit-comment-form").hide();
+	}
 };
 
 /**

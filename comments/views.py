@@ -7,7 +7,6 @@ from comments.forms import SubmitCommentForm
 
 import json
 import math
-import time
 
 def get_comments(request):
     """
@@ -49,8 +48,6 @@ def get_comments(request):
             response["data"]["pages"] = 1
         
         response["data"]["total_comment_count"] = total_comment_count
-    
-    time.sleep(2)
     
     return HttpResponse(json.dumps(response))
 

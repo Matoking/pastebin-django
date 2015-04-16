@@ -15,11 +15,11 @@
 				{% endwith %}
 			{% elif page == "last" %}
 				{% with page_number=total_pages %}
-				<li class="{% if current_page == page_number %}active{% endif %}"><a aria-label="Next" href="{% if current_page != page_number %}{% url destination url_arg page_number %}{% else %}#{% endif %}"><span aria-hidden="true">&raquo;</span></a></li>
+				<li class="{% if current_page == page_number %}active{% endif %}"><a aria-label="Last" href="{% if current_page != page_number %}{% url destination url_arg page_number %}{% else %}#{% endif %}"><span aria-hidden="true">&raquo;</span></a></li>
 				{% endwith %}
 			{% else %}
 				{% with page_number=page %}
-				<li class="{% if current_page == page_number %}active{% endif %}"><a aria-label="Next" href="{% if current_page != page_number %}{% url destination url_arg page_number %}{% else %}#{% endif %}"><span aria-hidden="true">{{ page_number }}</span></a></li>
+				<li class="{% if current_page == page_number %}active{% endif %}"><a aria-label="{{ page_number }}" href="{% if current_page != page_number %}{% url destination url_arg page_number %}{% else %}#{% endif %}"><span aria-hidden="true">{{ page_number }}</span></a></li>
 				{% endwith %}
 			{% endif %}
 		{% endfor %}

@@ -1,0 +1,19 @@
+<div id="comment-spinner" class="loader">Loading...</div>
+<!-- No comments -->
+<div style="display: none;" id="no-comments" class="alert alert-warning">
+	<strong>No comments</strong><br>
+	No comments have been posted yet.
+</div>
+<div id="comment-list">
+</div>
+<!-- Paginator -->
+<nav>
+	<ul style="display: none;" id="comment-paginator" class="pagination">
+		<hr>
+		<li><a href="#">1</a></li>
+		<li><a href="#">2</a></li>
+		<li><a href="#">3</a></li>
+	</ul>
+</nav>
+<!-- Comment form -->
+{% include "comments/comment_form.html" %}

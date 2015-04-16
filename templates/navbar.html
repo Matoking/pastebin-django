@@ -15,7 +15,7 @@
                     <ul class="dropdown-menu">
                     	<li><a href="{% url 'users:profile' user.get_username %}"><span class="glyphicon glyphicon-user"></span> {{ user.get_username }}</a></li>
                     	<li class="divider"></li>
-                    	<li><a href="{% url 'users:pastes' user.get_username %}"><span class="glyphicon glyphicon-plus"></span> My pastes</a></li>
+                    	<li><a href="{% url 'users:pastes' user.get_username %}"><span class="glyphicon glyphicon-file"></span> My pastes</a></li>
                     	<li><a href="{% url 'users:favorites' user.get_username %}"><span class="glyphicon glyphicon-star"></span> My favorites</a></li>
                     	<li class="divider"></li>
                     	<li><a href="{% url 'users:change_password' user.get_username %}"><span class="glyphicon glyphicon-lock"></span> Change password</a></li>

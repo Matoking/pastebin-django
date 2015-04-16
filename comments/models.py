@@ -52,9 +52,12 @@ class Comment(object):
         cursor.query(query, [text, current_datetime, id])
     
     @staticmethod
-    def get_comments(paste_id=None, char_id=None, offset=0, count=30):
+    def get_comments(paste_id=None, char_id=None, offset=0, count=30, stringify_datetime=False):
         """
         Get comments for a certain paste, starting from a provided offset
+        
+        If stringify_datetime is True, datetimes will be converted to strings. This is needed
+        if the comment is going to be serialized into JSON.
         """
         if char_id != None:
             paste_id = Paste.get_id(char_id)
@@ -67,6 +70,12 @@ class Comment(object):
                    OFFSET %s LIMIT %s"""
                    
         result = cursor.query_to_list(query, [paste_id, offset, count])
+        
+        if stringify_datetime:
+            for entry in result:
+                entry["submitted"] = str(entry["submitted"])
+                if entry["edited"] != None:
+                    entry["edited"] = str(entry["edited"])
         
         return result
     

@@ -4,7 +4,11 @@
  */
 if (typeof pastebin === 'undefined') {
 	var pastebin = {};
+	pastebin.urls = {};
 }
+
+// An object containing different URLs for easier access
+pastebin.urls["change_paste_favorite"] = window.location.protocol + "//" + window.location.host + "/pastes/change_paste_favorite/";
 
 pastebin.loadFavorites = function() {
 	// We need to send a CSRF token with POST requests, so make sure it's included
@@ -47,7 +51,7 @@ pastebin.addToFavorites = function() {
 		return;
 	}
 	
-	$.post(window.location.protocol + "//" + window.location.host + "/pastes/change_paste_favorite/",
+	$.post(pastebin.urls["change_paste_favorite"],
 		   {char_id: pastebin_char_id,
 		    action: "add"},
 		   function(result) {
@@ -65,7 +69,7 @@ pastebin.removeFromFavorites = function() {
 		return;
 	}
 	
-	$.post(window.location.protocol + "//" + window.location.host + "/pastes/change_paste_favorite/",
+	$.post(pastebin.urls["change_paste_favorite"],
 		   {char_id: pastebin_char_id,
 		    action: "remove"},
 		   function(result) {
@@ -81,8 +85,8 @@ pastebin.removeFromFavorites = function() {
 pastebin.onFavoriteUpdated = function(result) {
 	result = JSON.parse(result);
 	
-	if ("status" in result.data && result.data.status == "success") {
-		if (result.data["favorited"]) {
+	if ("status" in result && result["status"] === "success") {
+		if (result["data"]["favorited"]) {
 			pastebin_paste_favorited = true;
 		} else {
 			pastebin_paste_favorited = false;

@@ -9,9 +9,12 @@
 		<div class="col-md-12">
 			<!-- Include information that is visible to Javascript script(s) -->
 			<script>
+			var pastebin_current_username = {% if user.is_authenticated %}"{{ user.get_username }}"{% else %}null{% endif %};
+			
 			var pastebin_char_id = "{{ paste.char_id }}";
 			var pastebin_paste_favorited = {% if paste_favorited %}true{% else %}false{% endif %};
-			var pastebin_comment_count = {{ comment_count }};
+			var pastebin_total_comment_count = {{ comment_count }};
+			var pastebin_comment_page = 0;
 			
 			var pastebin_logged_in = {% if user.is_authenticated %}true{% else %}false{% endif %};
 			var pastebin_csrf_token = "{{ csrf_token }}";
@@ -37,8 +40,8 @@
 							<a class="btn btn-primary btn-sm" href="{% url "download_paste" paste.char_id %}"><span class="glyphicon glyphicon-download"></span> Download</a>
 						</div>
 						<div class="col-md-3">
-							<p><b>COMMENTS: </b> 242</p>
-							<button type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-menu-down"></span> Go to comments</button>
+							<p><b>COMMENTS: </b> {{ comment_count }}</p>
+							<button onclick="pastebin.scrollToComments()" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-menu-down"></span> Go to comments</button>
 						</div>
 						<div class="col-md-3">
 							{% if user.is_authenticated %}
@@ -49,7 +52,7 @@
 								{% endif %}
 								
 								{% if paste.user_id == user.id %}
-								<a class="btn btn-primary btn-sm" href="{% url "pastes:edit_paste" paste.char_id %}"><span class="glyphicon glyphicon-pencil"></span> Edit paste</a>
+								<a class="btn btn-primary btn-sm" data="tooltip" title="Edit paste" href="{% url "pastes:edit_paste" paste.char_id %}"><span class="glyphicon glyphicon-pencil"></span> Edit paste</a>
 								<a class="btn btn-danger btn-sm" href="{% url "pastes:delete_paste" paste.char_id %}"><span class="glyphicon glyphicon-remove"></span> Delete paste</a>
 								{% endif %}
 							{% endif %}
@@ -61,16 +64,12 @@
 			{{ paste.text|safe }}
 			<!-- Comments -->
 			<hr>
-			<div class="panel panel-default">
+			<div id="comment-panel" class="panel panel-default">
 				<div class="panel-heading">
-					<button type="button" class="btn btn-info btn-sm">Show comments ({{ comment_count }})</button>
+					<button id="comment-panel-button" onclick="pastebin.showComments()" type="button" class="btn btn-info btn-sm">Show comments ({{ comment_count }})</button>
 				</div>
-				<div class="panel-body">
-					<div class="container">
-						<p>Placeholder</p>
-					</div>
-					<!-- Comment form -->
-					{% include "comments/comment_form.html" %}
+				<div style="display: none;" id="comment-body" class="panel-body">
+					{% include "comments/comments.html" %}
 				</div>
 			</div>
 		</div>
@@ -79,5 +78,6 @@
 {% block extra_js %}
 	{% load staticfiles %}
 	<script src="{% static 'js/pastebin-favorite.js' %}"></script>
+	<script src="{% static 'js/pastebin-comments.js' %}"></script>
 	{% endblock %}
 {% endblock %}

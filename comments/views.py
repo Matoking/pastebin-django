@@ -7,13 +7,28 @@ from comments.forms import SubmitCommentForm
 
 import json
 import math
+import time
 
-def get_comments(request, char_id, page=0):
+def get_comments(request):
     """
     Return comments as JSON
     """
     response = {"status": "success",
                 "data": {}}
+    
+    if "char_id" in request.POST:
+        char_id = request.POST["char_id"]
+    else:
+        response["status"] = "fail"
+        response["data"]["message"] = "Paste ID was not provided (POST parameter 'char_id')"
+        return HttpResponse(json.dumps(response))
+    
+    if "page" in request.POST:
+        page = int(request.POST["page"])
+    else:
+        response["status"] = "fail"
+        response["data"]["message"] = "Comment page was not provided (POST parameter 'page')"
+        return HttpResponse(json.dumps(response))
     
     paste_id = Paste.get_id(char_id)
     
@@ -25,19 +40,38 @@ def get_comments(request, char_id, page=0):
         
         response["data"]["comments"] = Comment.get_comments(paste_id=paste_id,
                                         offset=page*Comment.COMMENTS_PER_PAGE,
-                                        count=Comment.COMMENTS_PER_PAGE)
+                                        count=Comment.COMMENTS_PER_PAGE,
+                                        stringify_datetime=True)
         response["data"]["page"] = page
         response["data"]["pages"] = math.ceil(float(total_comment_count) / float(Comment.COMMENTS_PER_PAGE))
+        
+        if response["data"]["pages"] == 0:
+            response["data"]["pages"] = 1
+        
         response["data"]["total_comment_count"] = total_comment_count
+    
+    time.sleep(2)
     
     return HttpResponse(json.dumps(response))
 
-def add_comment(request, char_id):
+def add_comment(request):
     """
     Adds a comment to a paste
     """
     response = {"status": "success",
                 "data": {}}
+    
+    if "char_id" in request.POST:
+        char_id = request.POST["char_id"]
+    else:
+        response["status"] = "fail"
+        response["data"]["message"] = "Paste ID was not provided (POST parameter 'char_id')"
+        return HttpResponse(json.dumps(response))
+    
+    if "text" not in request.POST:
+        response["status"] = "fail"
+        response["data"]["message"] = "Comment text was not provided (POST parameter 'text')"
+        return HttpResponse(json.dumps(response))
     
     paste_id = Paste.get_id(char_id)
     
@@ -62,9 +96,14 @@ def add_comment(request, char_id):
         
         response["data"]["comments"] = Comment.get_comments(paste_id=paste_id,
                                         offset=0,
-                                        count=Comment.COMMENTS_PER_PAGE)
+                                        count=Comment.COMMENTS_PER_PAGE,
+                                        stringify_datetime=True)
         response["data"]["page"] = 0
         response["data"]["pages"] = math.ceil(float(total_comment_count) / float(Comment.COMMENTS_PER_PAGE))
+        
+        if response["data"]["pages"] == 0:
+            response["data"]["pages"] = 1
+            
         response["data"]["total_comment_count"] = total_comment_count
     else:
         response["status"] = "fail"
@@ -72,12 +111,19 @@ def add_comment(request, char_id):
         
     return HttpResponse(json.dumps(response))
 
-def edit_comment(request, id):
+def edit_comment(request):
     """
     Edit an existing comment
     """
     response = {"status": "success",
                 "data": {}}
+    
+    if "id" in request.POST:
+        id = int(request.POST["id"])
+    else:
+        response["status"] = "fail"
+        response["data"]["message"] = "Comment ID was not provided (POST parameter 'id')"
+        return HttpResponse(json.dumps(response))
     
     if not request.user.is_authenticated():
         response["status"] = "fail"
@@ -111,9 +157,14 @@ def edit_comment(request, id):
         response["data"]["edited_comment_id"] = comment["id"]
         response["data"]["comments"] = Comment.get_comments(paste_id=paste_id,
                                                             offset=page*Comment.COMMENTS_PER_PAGE,
-                                                            count=Comment.COMMENTS_PER_PAGE)
+                                                            count=Comment.COMMENTS_PER_PAGE,
+                                                            stringify_datetime=True)
         response["data"]["page"] = page
         response["data"]["pages"] = math.ceil(float(total_comment_count) / float(Comment.COMMENTS_PER_PAGE))
+        
+        if response["data"]["pages"] == 0:
+            response["data"]["pages"] = 1
+            
         response["data"]["total_comment_count"] = total_comment_count
     else:
         response["status"] = "fail"

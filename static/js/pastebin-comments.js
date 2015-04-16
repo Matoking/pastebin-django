@@ -145,6 +145,7 @@ pastebin.onCommentsLoaded = function(result) {
 	
 	pastebin.updateComments();
 	pastebin.updateCommentPaginator();
+	pastebin.updateHeadingButton();
 	pastebin.resetCommentForm();
 };
 
@@ -168,6 +169,7 @@ pastebin.onCommentAdded = function(result) {
 		
 		pastebin.updateComments();
 		pastebin.updateCommentPaginator();
+		pastebin.updateHeadingButton();
 		pastebin.resetCommentForm();
 		
 		// Scroll up to display the newest comment
@@ -223,12 +225,12 @@ pastebin.updateComments = function() {
 		
 		var commentHtml = "<div class=\"media\" id=\"{COMMENT_ID}\">" +
 						  	"<div class=\"media-body\">" +
-						  		"<h4 class=\"media-heading\">{COMMENT_EDIT}{COMMENT_DELETE}{COMMENT_USERNAME}</h4>" +
+						  		"<h4 class=\"media-heading\">{COMMENT_DELETE}{COMMENT_EDIT}{COMMENT_USERNAME}</h4>" +
 						  	"{COMMENT_TEXT}" +
 						  "</div></div>";
 		
 		commentHtml = commentHtml.replace("{COMMENT_ID}", "comment-" + comment["id"]);
-		commentHtml = commentHtml.replace("{COMMENT_TEXT}", pastebin.escapeHtml(comment["text"]));
+		commentHtml = commentHtml.replace("{COMMENT_TEXT}", pastebin.escapeHtml(comment["text"]).replace(/\r?\n/g, '<br />'));
 		
 		var userUrl = pastebin.urls["user_profile"];
 		userUrl = userUrl.replace("{USERNAME}", comment["username"]);
@@ -237,9 +239,9 @@ pastebin.updateComments = function() {
 		
 		if (ownComment) {
 			commentHtml = commentHtml.replace("{COMMENT_EDIT}", "<button class=\"btn btn-xs btn-primary\">" +
-																"<span class=\"glyphicon glyphicon-pencil\"></span></button>");
+																"<span class=\"glyphicon glyphicon-pencil\"></span></button> ");
 			commentHtml = commentHtml.replace("{COMMENT_DELETE}", "<button class=\"btn btn-xs btn-danger\">" +
-																  "<span class=\"glyphicon glyphicon-remove\"></span></button>");
+																  "<span class=\"glyphicon glyphicon-remove\"></span></button> ");
 		} else {
 			commentHtml = commentHtml.replace("{COMMENT_EDIT}", "");
 			commentHtml = commentHtml.replace("{COMMENT_DELETE}", "");

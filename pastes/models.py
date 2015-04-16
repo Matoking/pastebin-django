@@ -155,6 +155,12 @@ class Paste(object):
         else:
             expiration_datetime = None
             
+        # Generating a duplicate char ID is extremely unlikely, but let's check for that to be sure
+        # eg. in case we don't have enough entropy and we start generating the same strings,
+        # in which case it's probably better to stop than continue
+        if Paste.get_paste(char_id=char_id) != None:
+            raise RuntimeError("A duplicate char ID was generated. Consider participating in a lottery instead.")
+            
         # Add paste in a transaction
         with transaction.atomic():
             cursor.query(query, [char_id, user_id, title, hash, format, expiration_datetime, hidden, submitted])

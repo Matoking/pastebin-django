@@ -50,6 +50,16 @@ class Comment(object):
                    WHERE id = %s"""
                    
         cursor.query(query, [text, current_datetime, id])
+        
+    @staticmethod
+    def delete_comment(id):
+        """
+        Delete a comment
+        """
+        query = """DELETE FROM comments
+                   WHERE id = %s"""
+                   
+        cursor.query(query, [id])
     
     @staticmethod
     def get_comments(paste_id=None, char_id=None, offset=0, count=30, stringify_datetime=False):

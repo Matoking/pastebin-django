@@ -12,6 +12,8 @@
 			var pastebin_current_username = {% if user.is_authenticated %}"{{ user.get_username }}"{% else %}null{% endif %};
 			
 			var pastebin_char_id = "{{ paste.char_id }}";
+			var pastebin_paste_title = "{{ paste.title }}";
+			
 			var pastebin_paste_favorited = {% if paste_favorited %}true{% else %}false{% endif %};
 			var pastebin_total_comment_count = {{ comment_count }};
 			var pastebin_comment_page = 0;

@@ -8,4 +8,5 @@ urlpatterns = patterns('',
     url(r'^add_comment/', views.add_comment, name="add_comment"),
     
     url(r'^edit_comment/', views.edit_comment, name="edit_comment"),
+    url(r'^delete_comment/', views.delete_comment, name="delete_comment"),
 )

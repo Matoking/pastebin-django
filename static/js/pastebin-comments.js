@@ -9,6 +9,8 @@ if (typeof pastebin === 'undefined') {
 
 pastebin.urls["get_comments"] = window.location.protocol + "//" + window.location.host + "/comments/get_comments/";
 pastebin.urls["add_comment"] = window.location.protocol + "//" + window.location.host + "/comments/add_comment/";
+pastebin.urls["edit_comment"] = window.location.protocol + "//" + window.location.host + "/comments/edit_comment/";
+pastebin.urls["delete_comment"] = window.location.protocol + "//" + window.location.host + "/comments/delete_comment/";
 
 pastebin.urls["user_profile"] = window.location.protocol + "//" + window.location.host + "/users/{USERNAME}/";
 
@@ -80,6 +82,97 @@ pastebin.showComments = function(page) {
  */
 pastebin.selectPage = function(page) {
 	pastebin.showComments(page);
+};
+
+/**
+ * Show the form to edit the comment or hide it if it's already visible
+ */
+pastebin.toggleEditComment = function(id) {
+	if ($("#comment-" + id).has(".comment-form").length === 0) {
+		// Show the edit comment form
+		$("#submit-comment-form").clone().appendTo("#comment-" + id);
+		
+		// Hide the displayed comment as well as the header for the form
+		$("#comment-" + id).find(".comment-text").hide();
+		$("#comment-" + id).find(".page-header").hide();
+		
+		// Change the description
+		$("#comment-" + id).find(".comment-form").attr("comment-form-" + id);
+		$("#comment-" + id).find(".comment-form-title").text("Edit comment");
+		$("#comment-" + id).find(".comment-form-description").html("You are editing your comment on paste <b>" + pastebin_paste_title + "</b>");
+		
+		$("#comment-" + id).find(".comment-text-field").val(pastebin_comments[id]["text"]);
+		
+		$("#comment-" + id).find(".comment-form-button").text("Update comment")
+														.attr("onclick", "pastebin.updateComment(" + id + ")");
+	} else {
+		// Delete the edit comment form and show the original comment
+		$("#comment-" + id).find(".comment-form").detach();
+		$("#comment-" + id).find(".comment-text").show();
+	}
+};
+
+/**
+ * Show the dialog to delete a comment
+ */
+pastebin.toggleDeleteComment = function(id) {
+	if ($("#comment-" + id).has(".delete-comment-form").length === 0) {
+		// Show the delete comment form
+		$("#delete-comment-form").clone().prependTo($("#comment-" + id).find(".comment-text")).show();
+		$("#comment-" + id).find(".delete-comment-form").attr("id", "delete-comment-form-" + id);
+		
+		$("#delete-comment-form-" + id).find(".delete-comment-button-yes").attr("onclick", "pastebin.deleteComment(" + id + ")");
+		$("#delete-comment-form-" + id).find(".delete-comment-button-no").attr("onclick", "pastebin.toggleDeleteComment(" + id + ")");
+	} else {
+		// Delete the comment deletion form
+		$("#comment-" + id).find(".delete-comment-form").detach();
+	}
+};
+
+/**
+ * Delete a comment
+ */
+pastebin.deleteComment = function(id) {
+	var comment = pastebin_comments[id];
+	
+	var commentId = pastebin_comments[id]["id"];
+	
+	$("#delete-comment-form-" + id).find(".delete-comment-button-yes").attr("disabled", true);
+	$("#delete-comment-form-" + id).find(".delete-comment-button-no").attr("disabled", true);
+	
+	$.post(pastebin.urls["delete_comment"],
+		  {id: commentId,
+		   char_id: pastebin_char_id,
+		   page: pastebin_comment_page},
+		  function(result) {
+			   // The result only contains a page of comments,
+			   // so we can use this handler instead
+			   pastebin.onCommentsLoaded(result); 
+		   });
+};
+
+/**
+ * Update an existing comment
+ */
+pastebin.updateComment = function(id) {
+	var comment = pastebin_comments[id];
+	
+	var commentId = pastebin_comments[id]["id"];
+	var newText = $("#comment-" + id).find(".comment-text-field").val();
+	
+	$("#comment-" + id).find(".comment-form-errors").hide();
+	$("#comment-" + id).find(".comment-form-button").attr("disabled", true);
+	
+	$.post(pastebin.urls["edit_comment"],
+		   {id: commentId,
+			char_id: pastebin_char_id,
+			page: pastebin_comment_page,
+		    text: newText},
+		   function(result) {
+		    	$("#comment-" + id).find(".comment-form-button").attr("disabled", false);
+		    	
+		    	pastebin.onCommentEdited(result, id);
+		    });
 };
 
 /**
@@ -174,7 +267,7 @@ pastebin.onCommentAdded = function(result) {
 		
 		// Scroll up to display the newest comment
 		pastebin.scrollToComments();
-	} else if (result["status"] == "fail") {
+	} else if (result["status"] === "fail") {
 		// Get the error message
 		var message = result["data"]["message"];
 		
@@ -183,6 +276,40 @@ pastebin.onCommentAdded = function(result) {
 		
 		$("#submit-comment-form").find(".comment-form-errors").html(errorHtml)
 															  .show();
+	}
+};
+
+/**
+ * Response received to "edit comment" request
+ * 
+ * Reload the shown comments or display an error message if necessary
+ */
+pastebin.onCommentEdited = function(result, id) {
+	result = JSON.parse(result);
+	
+	if (!("status" in result)) {
+		return;
+	}
+	
+	if (result["status"] === "success") {
+		pastebin_comment_page = result["data"]["page"];
+		pastebin_comment_pages = result["data"]["pages"];
+		pastebin_total_comment_count = result["data"]["total_comment_count"];
+		pastebin_comments = result["data"]["comments"];
+		
+		pastebin.updateComments();
+		pastebin.updateCommentPaginator();
+		pastebin.updateHeadingButton();
+		pastebin.resetCommentForm();
+	} else if (result["status"] === "fail") {
+		// Get the error message
+		var message = result["data"]["message"];
+		
+		var errorHtml = "The following error was returned when trying to edit a comment<br>" +
+						"<strong>" + message + "</strong>";
+		
+		$("comment-" + id).find(".comment-form-errors").html(errorHtml)
+													   .show();
 	}
 };
 
@@ -226,10 +353,10 @@ pastebin.updateComments = function() {
 		var commentHtml = "<div class=\"media\" id=\"{COMMENT_ID}\">" +
 						  	"<div class=\"media-body\">" +
 						  		"<h4 class=\"media-heading\">{COMMENT_DELETE}{COMMENT_EDIT}{COMMENT_USERNAME}</h4>" +
-						  	"{COMMENT_TEXT}" +
+						  	"<div class=\"comment-text\">{COMMENT_TEXT}</div>" +
 						  "</div></div>";
 		
-		commentHtml = commentHtml.replace("{COMMENT_ID}", "comment-" + comment["id"]);
+		commentHtml = commentHtml.replace("{COMMENT_ID}", "comment-" + i);
 		commentHtml = commentHtml.replace("{COMMENT_TEXT}", pastebin.escapeHtml(comment["text"]).replace(/\r?\n/g, '<br />'));
 		
 		var userUrl = pastebin.urls["user_profile"];
@@ -238,9 +365,9 @@ pastebin.updateComments = function() {
 		commentHtml = commentHtml.replace("{COMMENT_USERNAME}", "<a href=\"" + userUrl + "\">" + comment["username"] + "</a>");
 		
 		if (ownComment) {
-			commentHtml = commentHtml.replace("{COMMENT_EDIT}", "<button class=\"btn btn-xs btn-primary\">" +
+			commentHtml = commentHtml.replace("{COMMENT_EDIT}", "<button onclick=\"pastebin.toggleEditComment(" + i + ")\" class=\"btn btn-xs btn-primary\">" +
 																"<span class=\"glyphicon glyphicon-pencil\"></span></button> ");
-			commentHtml = commentHtml.replace("{COMMENT_DELETE}", "<button class=\"btn btn-xs btn-danger\">" +
+			commentHtml = commentHtml.replace("{COMMENT_DELETE}", "<button onclick=\"pastebin.toggleDeleteComment(" + i + ")\" class=\"btn btn-xs btn-danger\">" +
 																  "<span class=\"glyphicon glyphicon-remove\"></span></button> ");
 		} else {
 			commentHtml = commentHtml.replace("{COMMENT_EDIT}", "");

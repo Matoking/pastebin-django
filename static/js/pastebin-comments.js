@@ -89,44 +89,78 @@ pastebin.selectPage = function(page) {
  */
 pastebin.toggleEditComment = function(id) {
 	if ($("#comment-" + id).has(".comment-form").length === 0) {
-		// Show the edit comment form
-		$("#submit-comment-form").clone().appendTo("#comment-" + id);
-		
-		// Hide the displayed comment as well as the header for the form
-		$("#comment-" + id).find(".comment-text").hide();
-		$("#comment-" + id).find(".page-header").hide();
-		
-		// Change the description
-		$("#comment-" + id).find(".comment-form").attr("comment-form-" + id);
-		$("#comment-" + id).find(".comment-form-title").text("Edit comment");
-		$("#comment-" + id).find(".comment-form-description").html("You are editing your comment on paste <b>" + pastebin_paste_title + "</b>");
-		
-		$("#comment-" + id).find(".comment-text-field").val(pastebin_comments[id]["text"]);
-		
-		$("#comment-" + id).find(".comment-form-button").text("Update comment")
-														.attr("onclick", "pastebin.updateComment(" + id + ")");
+		pastebin.hideDeleteComment(id);
+		pastebin.showEditComment(id);
 	} else {
-		// Delete the edit comment form and show the original comment
-		$("#comment-" + id).find(".comment-form").detach();
-		$("#comment-" + id).find(".comment-text").show();
+		pastebin.hideEditComment(id);
 	}
 };
+
+/**
+ * Show the edit comment form
+ */
+pastebin.showEditComment = function(id) {
+	// Clone the edit comment form if it doesn't exist yet
+	if ($("#comment-" + id).has(".comment-form").length === 0) {
+		$("#submit-comment-form").clone().appendTo("#comment-" + id);
+	}
+	
+	// Hide the displayed comment as well as the header for the form
+	$("#comment-" + id).find(".comment-text").hide();
+	$("#comment-" + id).find(".page-header").hide();
+	
+	// Change the description
+	$("#comment-" + id).find(".comment-form").attr("comment-form-" + id);
+	$("#comment-" + id).find(".comment-form-title").text("Edit comment");
+	$("#comment-" + id).find(".comment-form-description").html("You are editing your comment on paste <b>" + pastebin_paste_title + "</b>");
+	
+	$("#comment-" + id).find(".comment-text-field").val(pastebin_comments[id]["text"]);
+	
+	$("#comment-" + id).find(".comment-form-button").text("Update comment")
+													.attr("onclick", "pastebin.updateComment(" + id + ")");
+};
+
+/**
+ * Hide the edit comment form
+ */
+pastebin.hideEditComment = function(id) {
+	// Delete the edit comment form and show the original comment
+	$("#comment-" + id).find(".comment-form").detach();
+	$("#comment-" + id).find(".comment-text").show();
+}
 
 /**
  * Show the dialog to delete a comment
  */
 pastebin.toggleDeleteComment = function(id) {
 	if ($("#comment-" + id).has(".delete-comment-form").length === 0) {
-		// Show the delete comment form
+		pastebin.hideEditComment(id);
+		pastebin.showDeleteComment(id);
+	} else {
+		pastebin.hideDeleteComment(id);
+	}
+};
+
+/**
+ * Show the delete comment form
+ */
+pastebin.showDeleteComment = function(id) {
+	// Show the delete comment form
+	if ($("#comment-" + id).has(".delete-comment-form").length === 0) {
 		$("#delete-comment-form").clone().prependTo($("#comment-" + id).find(".comment-text")).show();
 		$("#comment-" + id).find(".delete-comment-form").attr("id", "delete-comment-form-" + id);
-		
-		$("#delete-comment-form-" + id).find(".delete-comment-button-yes").attr("onclick", "pastebin.deleteComment(" + id + ")");
-		$("#delete-comment-form-" + id).find(".delete-comment-button-no").attr("onclick", "pastebin.toggleDeleteComment(" + id + ")");
-	} else {
-		// Delete the comment deletion form
-		$("#comment-" + id).find(".delete-comment-form").detach();
 	}
+	
+	$("#delete-comment-form-" + id).find(".delete-comment-button-yes").attr("onclick", "pastebin.deleteComment(" + id + ")");
+	$("#delete-comment-form-" + id).find(".delete-comment-button-no").attr("onclick", "pastebin.toggleDeleteComment(" + id + ")");
+};
+
+/**
+ * Hide the delete comment form
+ */
+pastebin.hideDeleteComment = function(id) {
+	// Delete the comment deletion form
+	$("#comment-" + id).find(".delete-comment-form").detach();
 };
 
 /**
@@ -379,6 +413,12 @@ pastebin.updateComments = function() {
 	}
 	
 	$("#comment-list").show();
+	
+	// Limit each comment paragraph's height
+	// This has to be done after the comments have been made visible
+	$("#comment-list").find(".comment-text").each(function() {
+		$(this).readmore();
+	});
 };
 
 /**

@@ -132,7 +132,7 @@ def edit_comment(request):
         return HttpResponse(json.dumps(response), status=422)
     
     if "page" in request.POST:
-        page = request.POST["page"]
+        page = int(request.POST["page"])
     else:
         page = 0
     

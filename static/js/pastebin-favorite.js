@@ -98,18 +98,4 @@ pastebin.onFavoriteUpdated = function(result) {
 	pastebin.updateFavoriteButton();
 };
 
-// Delay execution until the page and jQuery have loaded
-if (window.attachEvent) {
-	window.attachEvent("onload", pastebin.loadFavorites);
-} else {
-	if (window.onload) {
-        var currentOnLoad = window.onload;
-        var newOnLoad = function() {
-            currentOnLoad();
-            pastebin.loadFavorites();
-        };
-        window.onload = newOnLoad;
-    } else {
-        window.onload = pastebin.loadFavorites;
-    }
-}
+pastebin.loadFavorites();

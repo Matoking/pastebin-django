@@ -79,8 +79,8 @@
 </div>
 {% block extra_js %}
 	{% load staticfiles %}
+	<script src="{% static 'js/jquery.timeago.js' %}"></script>
 	<script src="{% static 'js/pastebin-favorite.js' %}"></script>
 	<script src="{% static 'js/pastebin-comments.js' %}"></script>
-	<script src="{% static 'js/jquery.collapser.min.js' %}"></script>
 	{% endblock %}
 {% endblock %}

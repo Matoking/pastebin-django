@@ -386,9 +386,19 @@ pastebin.updateComments = function() {
 		
 		var commentHtml = "<div class=\"media\" id=\"{COMMENT_ID}\">" +
 						  	"<div class=\"media-body\">" +
-						  		"<h4 class=\"media-heading\">{COMMENT_DELETE}{COMMENT_EDIT}{COMMENT_USERNAME}</h4>" +
+						  		"<h4 class=\"media-heading\">{COMMENT_DELETE}{COMMENT_EDIT}{COMMENT_USERNAME} {COMMENT_SUBMITTED}{COMMENT_EDITED}</h4>" +
 						  	"<div class=\"comment-text\">{COMMENT_TEXT}</div>" +
 						  "</div></div>";
+		
+		if (comment["edited"] !== null) {
+			var edited = new Date(comment["edited"] * 1000);
+			commentHtml = commentHtml.replace("{COMMENT_EDITED}", "<small>, edited </small><b><small class=\"comment-timestamp\" title=\"" + edited.toISOString() + "\">" + edited.toDateString() + "</small></b>");
+		} else {
+			commentHtml = commentHtml.replace("{COMMENT_EDITED}", "");
+		}
+		
+		var submitted = new Date(comment["submitted"] * 1000);
+		commentHtml = commentHtml.replace("{COMMENT_SUBMITTED}", "<small>Submitted </small><b><small class=\"comment-timestamp\" title=\"" + submitted.toISOString() + "\">" + submitted.toDateString() + "</small></b>");
 		
 		commentHtml = commentHtml.replace("{COMMENT_ID}", "comment-" + i);
 		commentHtml = commentHtml.replace("{COMMENT_TEXT}", pastebin.escapeHtml(comment["text"]).replace(/\r?\n/g, '<br />'));
@@ -411,6 +421,8 @@ pastebin.updateComments = function() {
 		// Append the element into the list
 		$("#comment-list").append(commentHtml);
 	}
+	
+	$("#comment-list").find(".comment-timestamp").timeago();
 	
 	$("#comment-list").show();
 	
@@ -540,18 +552,4 @@ pastebin.updateCommentPaginator = function() {
 	}
 };
 
-// Delay execution until the page and jQuery have loaded
-if (window.attachEvent) {
-	window.attachEvent("onload", pastebin.loadComments);
-} else {
-	if (window.onload) {
-        var currentOnLoad = window.onload;
-        var newOnLoad = function() {
-            currentOnLoad();
-            pastebin.loadComments();
-        };
-        window.onload = newOnLoad;
-    } else {
-        window.onload = pastebin.loadComments;
-    }
-};
+pastebin.loadComments();

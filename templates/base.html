@@ -40,7 +40,14 @@
     {% block page_footer %}{% include 'page_footer.html' %}{% endblock page_footer %}
     
     {# FOOTER #}
-    {% block footer %}{% include 'footer.html' %}{% endblock footer %}
+    {% load staticfiles %}
+	<!-- Bootstrap core JavaScript
+	================================================== -->
+	<!-- Placed at the end of the document so the pages load faster -->
+	<script src="{% static 'js/jquery.min.js' %}"></script>
+	<script src="{% static 'js/bootstrap.min.js' %}"></script>
+	<script src="{% static 'js/jquery.readmore.min.js' %}"></script>
+	{% block extra_js %}{% endblock extra_js %}
 </body>
 {% endblock body %}
 

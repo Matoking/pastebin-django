@@ -40,7 +40,7 @@ def get_comments(request):
         response["data"]["comments"] = Comment.get_comments(paste_id=paste_id,
                                         offset=page*Comment.COMMENTS_PER_PAGE,
                                         count=Comment.COMMENTS_PER_PAGE,
-                                        stringify_datetime=True)
+                                        datetime_as_unix=True)
         response["data"]["page"] = page
         response["data"]["pages"] = math.ceil(float(total_comment_count) / float(Comment.COMMENTS_PER_PAGE))
         
@@ -94,7 +94,7 @@ def add_comment(request):
         response["data"]["comments"] = Comment.get_comments(paste_id=paste_id,
                                         offset=0,
                                         count=Comment.COMMENTS_PER_PAGE,
-                                        stringify_datetime=True)
+                                        datetime_as_unix=True)
         response["data"]["page"] = 0
         response["data"]["pages"] = math.ceil(float(total_comment_count) / float(Comment.COMMENTS_PER_PAGE))
         
@@ -166,7 +166,7 @@ def edit_comment(request):
         response["data"]["comments"] = Comment.get_comments(paste_id=paste_id,
                                                             offset=page*Comment.COMMENTS_PER_PAGE,
                                                             count=Comment.COMMENTS_PER_PAGE,
-                                                            stringify_datetime=True)
+                                                            datetime_as_unix=True)
         response["data"]["page"] = page
         response["data"]["pages"] = math.ceil(float(total_comment_count) / float(Comment.COMMENTS_PER_PAGE))
         
@@ -235,7 +235,7 @@ def delete_comment(request):
         response["data"]["comments"] = Comment.get_comments(paste_id=paste_id,
                                         offset=page*Comment.COMMENTS_PER_PAGE,
                                         count=Comment.COMMENTS_PER_PAGE,
-                                        stringify_datetime=True)
+                                        datetime_as_unix=True)
         response["data"]["page"] = page
         response["data"]["pages"] = math.ceil(float(total_comment_count) / float(Comment.COMMENTS_PER_PAGE))
         

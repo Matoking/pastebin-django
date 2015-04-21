@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 
+{% block title %}Delete: {{ paste.title }} - pastebin-django{% endblock %}
+
 {% block content %}
 <div class="container">
 	<div class="row">
 		<div class="col-md-12">
 			<div class="page-header">
-		        <h1>Delete paste</h1>
+		        <h1>Delete: {{ paste.title }}</h1>
 		    </div>
 			<div class="alert alert-danger">
 				You are deleting the paste {{ paste.title }}. <b>Once deleted the paste can't be restored.</b><br><br>In addition, someone who found your paste useful and wanted to share it with someone might be extremely pissed off to find out you had deleted it.

@@ -3,6 +3,7 @@ from django.views.generic import TemplateView
 from django.contrib import admin
 
 from pastes import views as paste_views
+from home import views as home_views
 
 urlpatterns = patterns('',
     # Examples:
@@ -15,6 +16,10 @@ urlpatterns = patterns('',
     # Home page
     #url(r'^$', TemplateView.as_view(template_name='homepage.html'), name="homepage"),
     url(r'^$', include("home.urls", namespace="home")),
+    
+    url(r'^latest_pastes/(?P<page>\d+)', home_views.latest_pastes, name="latest_pastes"),
+    url(r'^latest_pastes/', home_views.latest_pastes, name="latest_pastes"),
+    
     url(r'^pastes/', include("pastes.urls", namespace="pastes")),
     url(r'^users/', include("users.urls", namespace="users")),
     url(r'^comments/', include("comments.urls", namespace="comments")),

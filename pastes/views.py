@@ -62,7 +62,7 @@ def edit_paste(request, char_id):
     if paste == None:
         return render(request, "pastes/edit_paste/edit_error.html", {"reason": "not_found"})
     
-    if paste["user_id"] != request.user.id:
+    if paste["user_id"] != request.user.id and not request.user.is_staff:
         return render(request, "pastes/edit_paste/edit_error.html", {"reason": "not_owner"})
     
     if paste["hidden"]:
@@ -102,8 +102,8 @@ def delete_paste(request, char_id):
     if paste == None:
         return render(request, "pastes/delete_paste/delete_error.html", {"reason": "not_found"})
     
-    # Check that the user deleting the paste is the one who uploaded it
-    if paste["user_id"] != request.user.id:
+    # Check that the user can delete the paste
+    if paste["user_id"] != request.user.id and not request.user.is_staff:
         return render(request, "pastes/delete_paste/delete_error.html", {"reason": "not_owner"})
     
     form = VerifyPasswordForm(request.POST or None, user=request.user)

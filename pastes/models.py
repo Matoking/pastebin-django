@@ -222,7 +222,7 @@ class Paste(object):
         return True
     
     @staticmethod
-    def get_pastes(user=None, count=30, offset=0):
+    def get_pastes(user=None, include_expired=False, include_hidden=True, count=30, offset=0):
         """
         Get pastes, optionally filtering by user and starting from a provided offset
         
@@ -230,14 +230,22 @@ class Paste(object):
         By default only 30 entries are retrieved
         """
         query = """SELECT id, char_id, title, submitted FROM pastes
-                   {WHERE}
-                   ORDER BY submitted DESC
-                   OFFSET %s LIMIT %s"""
+                   {WHERE}"""
         parameters = []
                    
         if user != None:
-            query = query.replace("{WHERE}", "WHERE user_id = %s")
+            query = query.replace("{WHERE}", "WHERE")
             parameters.append(user.id)
+            query += " user_id = %s AND"
+            
+        if not include_expired:
+            query = query.replace("{WHERE}", "WHERE")
+            parameters.append(datetime.datetime.now())
+            query += " (expiration_date IS NULL OR expiration_date <= %s) AND"
+            
+        if not include_hidden:
+            query = query.replace("{WHERE}", "WHERE")
+            query += " hidden = FALSE"
                    
         # If count is not provided or it's "all",
         # assume user wants to retrieve all records
@@ -246,6 +254,15 @@ class Paste(object):
             
         parameters.append(offset)
         parameters.append(count)
+        
+        query = query.replace("{WHERE}", "")
+        
+        # If WHERE query ends with a lone "AND", remove it
+        if query.endswith(" AND"):
+            query = query[:-4]
+                   
+        query += """\nORDER BY submitted DESC
+                    OFFSET %s LIMIT %s"""
                    
         result = cursor.query_to_list(query, parameters)
         
@@ -260,14 +277,36 @@ class Paste(object):
         return Paste.get_pastes(count=-1)
     
     @staticmethod
-    def get_paste_count(user):
+    def get_paste_count(user=None, include_hidden=False, include_expired=False):
         """
         Get the amount of pastes the user has uploaded
         """
         query = """SELECT COUNT(*) AS count FROM pastes
-                   WHERE user_id = %s"""
+                   {WHERE}"""
                    
-        result = cursor.query_to_dict(query, [user.id])
+        parameters = []
+                   
+        if user != None:
+            query = query.replace("{WHERE}", "WHERE ")
+            parameters.append(user.id)
+            query += " user_id = %s AND"
+            
+        if not include_expired:
+            query = query.replace("{WHERE}", "WHERE ")
+            parameters.append(datetime.datetime.now())
+            query += " (expiration_date IS NULL OR expiration_date <= %s) AND"
+            
+        if not include_hidden:
+            query = query.replace("{WHERE}", "WHERE ")
+            query += " hidden = FALSE"
+            
+        query = query.replace("{WHERE}", "")
+        
+        # If WHERE query ends with a lone "AND", remove it
+        if query.endswith(" AND"):
+            query = query[:-4]
+            
+        result = cursor.query_to_dict(query, parameters)
         
         return result["count"]
     

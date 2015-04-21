@@ -7,6 +7,7 @@
 	    <div class="collapse navbar-collapse">
 	    	<ul class="nav navbar-nav">
 		        <li><a href="{% url 'home:home' %}">Home</a></li>
+		        <li class="{% ancestor "latest_pastes" %}"><a href="{% url 'latest_pastes' %}">Latest pastes</a>
 		    </ul>
             <ul class="nav navbar-nav navbar-right">
                 {% if user.is_authenticated %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="page-header">
+				<h1>Latest pastes</h1>
+			</div>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Title</th>
+						<th>Age</th>
+						{% if user.is_staff %}
+						<th>Actions</th>
+						{% endif %}
+					</tr>
+				</thead>
+				<tbody>
+					{% for paste in pastes %}
+					<tr>
+						<td><a href="{% url "show_paste" paste.char_id %}">{{ paste.title|truncatechars:64 }}</a></td>
+						<td>{{ paste.submitted|naturaltime }}</td>
+						{% if user.is_staff %}
+						<td>
+							<a class="btn btn-primary btn-xs" href="{% url "pastes:edit_paste" paste.char_id %}"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+					<a class="btn btn-danger btn-xs" href="{% url "pastes:delete_paste" paste.char_id %}"><span class="glyphicon glyphicon-remove"></span> Delete</a>
+						</td>
+						{% endif %}
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			{% include "pagination.html" with destination="latest_pastes" %}
+		</div>
+	</div>
+</div>
+{% endblock %}

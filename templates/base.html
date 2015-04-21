@@ -4,7 +4,26 @@
 {# HEADER #}
 {% block head %}
 <head>
-    {% include 'header.html' %}
+    {% load staticfiles %}
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	
+	<title>{% block title %}pastebin-django{% endblock %}</title>
+	
+	<!-- Bootstrap core CSS -->
+	<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+	<link href="{% static 'css/pastesite.css' %}" rel="stylesheet">
+	<link href="{% static 'css/pygments-style.css' %}" rel="stylesheet">
+	
+	<!-- Padding to move content below the menubar -->
+	<style>
+	body {
+	  padding-top: 50px;
+	}
+	</style>
 </head>
 {% endblock head %}
 

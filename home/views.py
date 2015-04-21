@@ -3,7 +3,10 @@ from django.shortcuts import render, redirect
 from pastes.forms import SubmitPasteForm
 from pastes.models import Paste, LatestPastes
 
+from pastesite.util import Paginator
+
 import highlighting
+import math
 
 def home(request):
     """
@@ -33,6 +36,23 @@ def home(request):
         # Redirect to the newly created paste
         return redirect("show_paste", char_id=char_id)
     
-    return render(request, 'home/home.html', {"form": paste_form,
+    return render(request, "home/home.html", {"form": paste_form,
                                               "latest_pastes": latest_pastes,
                                               "languages": languages })
+    
+def latest_pastes(request, page=1):
+    PASTES_PER_PAGE = 15
+    
+    page = int(page)
+    
+    offset = (page-1) * PASTES_PER_PAGE
+    total_paste_count = Paste.get_paste_count()    
+    
+    pastes = Paste.get_pastes(count=PASTES_PER_PAGE, offset=offset)
+    pages = Paginator.get_pages(page, PASTES_PER_PAGE, total_paste_count)
+    total_pages = math.ceil(float(total_paste_count) / float(PASTES_PER_PAGE))
+    
+    return render(request, "latest_pastes/latest_pastes.html", {"current_page": page,
+                                                                "pastes": pastes,
+                                                                "pages": pages,
+                                                                "total_pages": total_pages})

@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
+from django.utils.html import escape
 
 from pastes.models import Paste
 
@@ -8,11 +9,11 @@ class PasteTests(TestCase):
         """
         Check that paste is submitted correctly and can be viewed
         """
-        response = self.client.post(reverse("pastes:submit_paste"), { "title": "Paste test title",
-                                                                      "text": "This is a test.",
-                                                                      "syntax_highlighting": "text",
-                                                                      "expiration": "never",
-                                                                      "visibility": "public"},
+        response = self.client.post(reverse("home:home"), { "title": "Paste test title",
+                                                            "text": "This is a test.",
+                                                            "syntax_highlighting": "text",
+                                                            "expiration": "never",
+                                                            "visibility": "public"},
                                     follow=True)
         
         self.assertContains(response, "Paste test title")
@@ -22,16 +23,16 @@ class PasteTests(TestCase):
         """
         Check that an empty paste can't be uploaded
         """
-        response = self.client.post(reverse("pastes:submit_paste"), { "title": "Paste test title",
-                                                                      "text": "",
-                                                                      "syntax_highlighting": "text",
-                                                                      "expiration": "never",
-                                                                      "visibility": "public"},
+        response = self.client.post(reverse("home:home"), { "title": "Paste test title",
+                                                            "text": "",
+                                                            "syntax_highlighting": "text",
+                                                            "expiration": "never",
+                                                            "visibility": "public"},
                                     follow=True)
         
         # We should be redirected back to the front page on failure
         self.assertContains(response, "Upload a new paste")
-        self.assertNotContains(response, "Paste test title")
+        self.assertContains(response, escape("The paste can't be empty."))
         
     def test_raw_paste_displayed_correctly(self):
         """

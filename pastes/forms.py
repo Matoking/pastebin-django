@@ -27,7 +27,8 @@ class SubmitPasteForm(forms.Form):
                             required=False,
                             widget=forms.TextInput(attrs={"placeholder": "Untitled"}))
     text = forms.CharField(min_length=1,
-                           max_length=100000)
+                           max_length=100000,
+                           error_messages={"required": "The paste can't be empty."})
     expiration = forms.ChoiceField(choices=EXPIRATION_CHOICES)
 
     visibility = forms.ChoiceField(choices=VISIBILITY_CHOICES)
@@ -57,7 +58,8 @@ class EditPasteForm(forms.Form):
     
     syntax_highlighting = forms.ChoiceField(choices=highlighting.settings.LANGUAGES)
     text = forms.CharField(min_length=1,
-                           max_length=100000)
+                           max_length=100000,
+                           error_messages={"required": "The paste can't be empty."})
     
     def clean_title(self):
         """

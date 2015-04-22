@@ -41,18 +41,22 @@ def home(request):
                                               "languages": languages })
     
 def latest_pastes(request, page=1):
+    """
+    Show all of the pastes starting from the newest
+    """
     PASTES_PER_PAGE = 15
     
     page = int(page)
     
     offset = (page-1) * PASTES_PER_PAGE
-    total_paste_count = Paste.get_paste_count()    
+    total_paste_count = Paste.get_paste_count(include_hidden=False)    
     
-    pastes = Paste.get_pastes(count=PASTES_PER_PAGE, offset=offset)
+    pastes = Paste.get_pastes(count=PASTES_PER_PAGE, offset=offset, include_hidden=False)
     pages = Paginator.get_pages(page, PASTES_PER_PAGE, total_paste_count)
     total_pages = math.ceil(float(total_paste_count) / float(PASTES_PER_PAGE))
     
     return render(request, "latest_pastes/latest_pastes.html", {"current_page": page,
                                                                 "pastes": pastes,
                                                                 "pages": pages,
-                                                                "total_pages": total_pages})
+                                                                "total_pages": total_pages,
+                                                                "total_paste_count": total_paste_count})

@@ -408,15 +408,21 @@ pastebin.updateComments = function() {
 		
 		commentHtml = commentHtml.replace("{COMMENT_USERNAME}", "<a href=\"" + userUrl + "\">" + comment["username"] + "</a>");
 		
-		if (ownComment) {
+		if (ownComment || pastebin_can_edit_comments) {
 			commentHtml = commentHtml.replace("{COMMENT_EDIT}", "<button onclick=\"pastebin.toggleEditComment(" + i + ")\" class=\"btn btn-xs btn-primary\">" +
 																"<span class=\"glyphicon glyphicon-pencil\"></span></button> ");
+		}
+	
+		if (ownComment || pastebin_can_delete_comments) {
 			commentHtml = commentHtml.replace("{COMMENT_DELETE}", "<button onclick=\"pastebin.toggleDeleteComment(" + i + ")\" class=\"btn btn-xs btn-danger\">" +
 																  "<span class=\"glyphicon glyphicon-remove\"></span></button> ");
-		} else {
-			commentHtml = commentHtml.replace("{COMMENT_EDIT}", "");
-			commentHtml = commentHtml.replace("{COMMENT_DELETE}", "");
 		}
+		
+		commentHtml = commentHtml.replace("{COMMENT_EDIT}", "");
+		commentHtml = commentHtml.replace("{COMMENT_DELETE}", "");
+		
+		commentHtml = commentHtml.replace("{COMMENT_EDIT}", "");
+		commentHtml = commentHtml.replace("{COMMENT_DELETE}", "");
 		
 		// Append the element into the list
 		$("#comment-list").append(commentHtml);

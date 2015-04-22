@@ -8,6 +8,7 @@
 			<div class="page-header">
 				<h1>Latest pastes</h1>
 			</div>
+			{% if total_paste_count > 0 %}
 			<table class="table">
 				<thead>
 					<tr>
@@ -34,6 +35,12 @@
 				</tbody>
 			</table>
 			{% include "pagination.html" with destination="latest_pastes" %}
+			{% else %}
+			<div class="alert alert-warning">
+				<strong>No pastes uploaded</strong><br>
+				No public pastes have been uploaded yet.
+			</div>
+			{% endif %}
 		</div>
 	</div>
 </div>

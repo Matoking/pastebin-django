@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.core.exceptions import ObjectDoesNotExist
 
 from users.models import PastebinUser
 
@@ -80,10 +81,13 @@ def profile(request, username, tab="home", page=1):
     """
     page = int(page)
     
-    profile_user = User.objects.get(username=username)
+    try:
+        profile_user = User.objects.get(username=username)
+    except ObjectDoesNotExist:
+        return render(request, "users/profile/profile_error.html", {"reason": "not_found"}, status=404)
     
-    if profile_user == None:
-        return render(request, "users/profile/profile_error.html", {"reason": "not_found"})
+    if not profile_user.is_active:
+        return render(request, "users/profile/profile_error.html", {"reason": "not_found"}, status=404)
     
     args = {"profile_user": profile_user,
             "current_page": page,

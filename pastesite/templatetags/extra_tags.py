@@ -1,8 +1,12 @@
 from django import template
 from django.template import Template, Variable, TemplateSyntaxError
 
+from itertools import chain
+
 import humanfriendly
 import datetime
+
+import highlighting
 
 import math
 
@@ -130,3 +134,19 @@ def timeuntil_in_seconds(value):
     difference = value - current_datetime
     
     return abs(difference.total_seconds())
+
+@register.filter(name="syntax_format_to_text")
+def syntax_format_to_text(value):
+    """
+    Returns the given syntax highlighting format as a human readable string
+    """
+    if highlighting.language_exists(value):
+        languages = chain(*highlighting.settings.LANGUAGES)
+        
+        for language in languages:
+            if language == value:
+                # Since we converted the language tuple into an iterator,
+                # the human readable string is always the next one
+                return languages.next()
+    else:
+        raise TemplateSyntaxError("Given syntax highlighting format wasn't found")

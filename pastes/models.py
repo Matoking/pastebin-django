@@ -137,7 +137,7 @@ class Paste(object):
         
         # Generate a random 8 character string for the char ID
         char_id = Paste.get_random_char_id()
-        hash = hashlib.sha256(text).hexdigest()
+        hash = hashlib.sha256(text.encode('utf-8')).hexdigest()
         submitted = datetime.datetime.now()
         
         # Make paste hidden if its visibility is hidden (private visibility may be added later)
@@ -185,7 +185,7 @@ class Paste(object):
         else:
             hidden = False
             
-        hash = hashlib.sha256(text).hexdigest()
+        hash = hashlib.sha256(text.encode('utf-8')).hexdigest()
             
         with transaction.atomic():
             # Save the new paste content both as raw text and with formatting
@@ -339,7 +339,7 @@ class PasteContent(object):
         
         If format other than None is provided, Pygments will be used to highlight the text
         """
-        hash = hashlib.sha256(text).hexdigest()
+        hash = hashlib.sha256(text.encode('utf-8')).hexdigest()
         
         if format != None:
             text = highlighting.format_text(text, format)

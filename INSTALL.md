@@ -1,0 +1,60 @@
+INSTALLING AND RUNNING PASTEBIN-DJANGO
+===
+These steps explain how to get pastebin-django working in such a way that it can be launched using the provided manage.py script (which is unsuitable for production use!), the database connection works correctly, etc. There are multiple ways to run Django projects in a production environment, although for pastesite.matoking.com I've used uWSGI with nginx. Instructions for running a Django application with that stack can be found here:
+https://uwsgi-docs.readthedocs.org/en/latest/tutorials/Django_and_nginx.html
+
+
+Installing dependencies
+--
+pastebin-django requires Python and a few related dependencies to be installed (virtualenv, pip). The following command should install the required dependencies if you are running on Debian or a derivative (eg. Linux Mint, Ubuntu).
+
+sudo apt-get install python python-dev python-pip python-virtualenv
+
+Creating virtualenv container and installing required Python libraries
+--
+Although this step is optional, it's recommended to install and run the web application inside a virtualenv environment, as this isolates the web application's environment from the system-wide Python installation, thus ensuring that your web application won't be accidentally broken by a system-wide update.
+
+To create the virtualenv environment, run the following command on the pastesite directory, which contains the project's apps such as pastes, comments.
+
+virtualenv pastesite
+
+Once you have created the virtualenv environment, you can start using it by running the following command.
+
+source bin/activate
+
+You can always deactivate the virtualenv environment by running the following command.
+
+deactivate
+
+But instead of leaving the environment, let's install the required Python libraries using pip. cd inside the pastesite directory and install the required Python libraries. Note that sudo isn't necessary, as we are installing all of the libraries inside our isolated Python environment.
+
+cd pastesite
+pip install -r requirements.txt
+
+Configuring the PostgreSQL database
+--
+We'll assume you have already created a database and a role which can access the said database. Start by opening the settings.py file in pastesite/settings.py and changing the credentials in DATABASES['default']. If you're going to be running unit tests, you can change the database name in DATABASES['default']['TEST']['NAME'], which is the database that will be used when running the unit tests.
+
+After this is done, run the following command in the root of your virtualenv environment to create Django's in-built database tables. You may also be prompted to create a superuser, which you can use when logging into pastebin-django.
+
+python manage.py syncdb
+
+After you have let Django sync its own database tables, you can run the SQL queries in sql/create_tables.sql to create the rest of the tables.
+
+psql DATABASE_NAME < sql/create_tables.sql
+
+Running the unit tests
+--
+At this point your web application should be configured correctly. But to make sure that everything will work nicely before we try running the web application, run the unit tests using the following command. You can use your "normal" database when running the unit tests, but you'll need to recreate the tables described in sql/create_tables.sql after running the tests, as those will be automatically dropped.
+
+python manage.py test
+
+If everything worked as intended, all of the tests should pass which means the web application <--> database connection is working correctly.
+
+Starting the development web server
+--
+We are now ready to start the development web server. Run the following command to run the web application on 127.0.0.1:8000, which is also the URL you'll need to enter into your web browser in order to access the site. Feel free to change the address and/or port depending on your working environment.
+
+python manage.py runserver 127.0.0.1:8000
+
+Now, try opening http://127.0.0.1:8000 in your web browser. If everything worked out correctly, you should now be able to use the web application as normal.

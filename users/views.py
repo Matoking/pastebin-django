@@ -10,7 +10,7 @@ from users.models import Favorite
 
 from pastes.models import Paste
 
-from pastesite.util import Paginator
+from pastebin.util import Paginator
 
 import math
 

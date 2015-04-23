@@ -1,7 +1,7 @@
 from django.test.runner import DiscoverRunner
 from sql import cursor
 
-from pastesite import settings
+from pastebin import settings
 
 import os
 

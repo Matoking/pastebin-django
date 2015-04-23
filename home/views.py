@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from pastes.forms import SubmitPasteForm
 from pastes.models import Paste, LatestPastes
 
-from pastesite.util import Paginator
+from pastebin.util import Paginator
 
 import highlighting
 import math

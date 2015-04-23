@@ -1,5 +1,5 @@
 """
-Django settings for pastesite project.
+Django settings for pastebin project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.7/topics/settings/
@@ -43,7 +43,7 @@ INSTALLED_APPS = (
     'widget_tweaks', # Allows more fine-grained control of HTML in forms
     'lineage', # Used for navbar template tags
     
-    'pastesite',
+    'pastebin',
     'home',
     'pastes',
     'users',
@@ -73,9 +73,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'pastesite.urls'
+ROOT_URLCONF = 'pastebin.urls'
 
-WSGI_APPLICATION = 'pastesite.wsgi.application'
+WSGI_APPLICATION = 'pastebin.wsgi.application'
 
 # Templates
 
@@ -98,7 +98,7 @@ DATABASES = {
     }
 }
 
-TEST_RUNNER = "pastesite.testrunner.SQLTestRunner"
+TEST_RUNNER = "pastebin.testrunner.SQLTestRunner"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/

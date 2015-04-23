@@ -7,7 +7,7 @@ from home import views as home_views
 
 urlpatterns = patterns('',
     # Examples:
-    # url(r'^$', 'pastesite.views.home', name='home'),
+    # url(r'^$', 'pastebin.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
     # Django's in-built admin interface

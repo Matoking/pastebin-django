@@ -1,6 +1,7 @@
+{% load extra_tags %}
 <div class="container">
 	<hr>
 	<footer>
-		<p>There's supposed to be some sort of footer text here but I don't feel like writing anything meaningful here yet.</p>
+		<p>Pastes uploaded: <b>{% get_total_paste_count %}</b> | Comments posted: <b>{% get_total_comment_count %}</b> | <a href="https://github.com/Matoking/pastebin-django/">pastebin-django</a> on GitHub</p>
 	</footer>
 </div>

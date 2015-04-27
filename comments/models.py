@@ -92,17 +92,19 @@ class Comment(object):
     @staticmethod
     def get_comment_count(paste_id=None, char_id=None):
         """
-        Get amount of comments on a paste
+        Get amount of comments either. 
+        If paste_id or char_id isn't provided, get the total amount of comments for all pastes
         """
         if char_id != None:
             paste_id = Paste.get_id(char_id)
-                
-        if paste_id == None:
-            return 0
         
-        query = """SELECT COUNT(*) AS count FROM comments
-                   WHERE paste_id = %s"""
+        query = """SELECT COUNT(*) AS count FROM comments"""
+        parameters = []
+        
+        if paste_id != None:
+            query += "\nWHERE paste_id = %s"
+            parameters.append(paste_id)
                    
-        result = cursor.query_to_dict(query, [paste_id])
+        result = cursor.query_to_dict(query, parameters)
         
         return result["count"]

@@ -14,9 +14,9 @@ Creating virtualenv container and installing required Python libraries
 --
 Although this step is optional, it's recommended to install and run the web application inside a virtualenv environment, as this isolates the web application's environment from the system-wide Python installation, thus ensuring that your web application won't be accidentally broken by a system-wide update.
 
-To create the virtualenv environment, run the following command on the pastesite directory, which contains the project's apps such as pastes, comments.
+To create the virtualenv environment, run the following command on the pastebin-django directory, which contains the project's apps such as pastes, comments.
 
-virtualenv pastesite
+virtualenv pastebin-django
 
 Once you have created the virtualenv environment, you can start using it by running the following command.
 
@@ -26,14 +26,14 @@ You can always deactivate the virtualenv environment by running the following co
 
 deactivate
 
-But instead of leaving the environment, let's install the required Python libraries using pip. cd inside the pastesite directory and install the required Python libraries. Note that sudo isn't necessary, as we are installing all of the libraries inside our isolated Python environment.
+But instead of leaving the environment, let's install the required Python libraries using pip. cd inside the pastebin-django directory and install the required Python libraries. Note that sudo isn't necessary, as we are installing all of the libraries inside our isolated Python environment.
 
-cd pastesite
+cd pastebin-django
 pip install -r requirements.txt
 
 Configuring the PostgreSQL database
 --
-We'll assume you have already created a database and a role which can access the said database. Start by opening the settings.py file in pastesite/settings.py and changing the credentials in DATABASES['default']. If you're going to be running unit tests, you can change the database name in DATABASES['default']['TEST']['NAME'], which is the database that will be used when running the unit tests.
+We'll assume you have already created a database and a role which can access the said database. Start by opening the settings.py file in pastebin/settings.py and changing the credentials in DATABASES['default']. If you're going to be running unit tests, you can change the database name in DATABASES['default']['TEST']['NAME'], which is the database that will be used when running the unit tests.
 
 After this is done, run the following command in the root of your virtualenv environment to create Django's in-built database tables. You may also be prompted to create a superuser, which you can use when logging into pastebin-django.
 

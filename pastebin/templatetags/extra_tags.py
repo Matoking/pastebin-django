@@ -3,6 +3,9 @@ from django.template import Template, Variable, TemplateSyntaxError
 
 from itertools import chain
 
+from pastes.models import Paste
+from comments.models import Comment
+
 import humanfriendly
 import datetime
 
@@ -112,6 +115,28 @@ def pagination_list(parser, token):
         raise TemplateSyntaxError("'%s' requires three arguments: current page, entries per page and total amount of entries" % bits[0])
     
     return PaginationListNode(bits[1], bits[2], bits[3])
+
+class TotalPasteCountNode(template.Node):
+    """
+    Returns total amount of pastes uploaded to the site
+    """
+    def render(self, context):
+        return Paste.get_paste_count()
+    
+@register.tag(name="get_total_paste_count")
+def get_total_paste_count(parser, token):
+    return TotalPasteCountNode()
+
+class TotalCommentCountNode(template.Node):
+    """
+    Returns total amount of comments posted on the site
+    """
+    def render(self, context):
+        return Comment.get_comment_count()
+    
+@register.tag(name="get_total_comment_count")
+def get_total_comment_count(parser, token):
+    return TotalCommentCountNode()
 
 @register.filter(name="timesince_in_seconds")
 def timesince_in_seconds(value):

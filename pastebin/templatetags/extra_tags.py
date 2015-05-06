@@ -121,7 +121,7 @@ class TotalPasteCountNode(template.Node):
     Returns total amount of pastes uploaded to the site
     """
     def render(self, context):
-        return Paste.get_paste_count()
+        return Paste.objects.filter(hidden=False).count()
     
 @register.tag(name="get_total_paste_count")
 def get_total_paste_count(parser, token):

@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     
     'widget_tweaks', # Allows more fine-grained control of HTML in forms
     'lineage', # Used for navbar template tags
+    'debug_toolbar',
     
     'pastebin',
     'home',
@@ -71,6 +72,10 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+)
+
+INTERNAL_IPS = (
+    "192.168.1.3"
 )
 
 ROOT_URLCONF = 'pastebin.urls'

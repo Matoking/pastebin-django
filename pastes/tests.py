@@ -40,7 +40,8 @@ class PasteTests(TestCase):
         """
         text = """This is a raw paste.<b></b>>TEST TEST TEST     TEST"""
         
-        char_id = Paste.add_paste(text)
+        paste = Paste()
+        char_id = paste.add_paste(text)
         
         response = self.client.get(reverse("raw_paste", kwargs={"char_id": char_id}))
         

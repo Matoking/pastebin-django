@@ -15,7 +15,8 @@ def home(request):
     """
     paste_form = SubmitPasteForm(request.POST or None)
     
-    latest_pastes = LatestPastes.get_latest_pastes()
+    latest_pastes = Paste.objects.get_pastes(include_expired=False, include_hidden=False,
+                                             count=15)
     
     languages = highlighting.settings.LANGUAGES
     
@@ -26,7 +27,8 @@ def home(request):
         if request.user.is_authenticated():
             user = request.user
         
-        char_id = Paste.add_paste(title=paste_data["title"],
+        paste = Paste()
+        char_id = paste.add_paste(title=paste_data["title"],
                                   user=user,
                                   text=paste_data["text"],
                                   expiration=paste_data["expiration"],

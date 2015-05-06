@@ -16,24 +16,25 @@ def show_paste(request, char_id, raw=False, download=False):
     Show the paste, possibly as raw text or as a download
     """
     # If paste has expired, show the ordinary "paste not found" page
-    if Paste.is_paste_expired(char_id=char_id):
+    paste = Paste.objects.get(char_id=char_id)
+    
+    if paste.is_paste_expired():
         return render(request, "pastes/show_paste/show_error.html", {"reason": "expired"}, status=404)
     
     # Get the formatted paste text unless the user is downloading the paste or viewing it as raw text
     formatted = True
     if raw == True or download == True:
         formatted = False
-    
-    paste = Paste.get_paste(char_id=char_id, include_text=True, formatted=formatted)
-    
     if paste == None:
         return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)
     
     if raw:
-        response = HttpResponse(paste["text"], content_type='text/plain')
+        text = paste.get_text(formatted=False)
+        response = HttpResponse(text, content_type='text/plain')
         return response
     elif download:
-        response = HttpResponse(paste["text"], content_type='application/octet-stream')
+        text = paste.get_text(formatted=False)
+        response = HttpResponse(text, content_type='application/octet-stream')
         response["Content-Disposition"] = 'attachment; filename="%s.txt"' % char_id
         return response
     else:
@@ -41,9 +42,9 @@ def show_paste(request, char_id, raw=False, download=False):
         paste_favorited = False
         
         if request.user.is_authenticated():
-            paste_favorited = Favorite.is_paste_favorited(request.user, id=paste["id"])
+            paste_favorited = Favorite.is_paste_favorited(request.user, id=paste.id)
             
-        comment_count = Comment.get_comment_count(paste_id=paste["id"])
+        comment_count = Comment.get_comment_count(paste_id=paste.id)
             
         return render(request, "pastes/show_paste/show_paste.html", {"paste": paste,
                                                                      "paste_favorited": paste_favorited,

@@ -14,12 +14,10 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Comment',
+            name='Favorite',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('text', models.TextField()),
-                ('submitted', models.DateTimeField(auto_now_add=True)),
-                ('edited', models.DateTimeField(auto_now=True)),
+                ('added', models.DateTimeField(auto_now_add=True)),
                 ('paste', models.ForeignKey(to='pastes.Paste')),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],

@@ -100,9 +100,6 @@ class Paste(models.Model):
         
         If formatted is True, text is returned in its HTML formatted form
         """
-        if self.id == None:
-            self.id = self.get_id()
-            
         if formatted:
             paste_content = PasteContent.objects.get(hash=self.hash, format=self.format)
         else:
@@ -191,17 +188,19 @@ class Paste(models.Model):
             self.save()
             
             # Save the new paste content both as raw text and with formatting
-            PasteContent.add_paste_text(text, None)
-            PasteContent.add_paste_text(text, format)
+            unformatted = PasteContent()
+            formatted = PasteContent()
+            
+            unformatted.add_paste_text(text, None)
+            formatted.add_paste_text(text, format)
     
     def delete_paste(self):
         """
         Delete the paste
-        """
-        if char_id != None:
-            id = Paste.get_id(char_id)
-            
+        """    
         with transaction.atomic():
+            from favorites.models import Favorite
+            
             # Delete favorites linked to this paste first
             Favorite.objects.filter(paste=self).delete()
             

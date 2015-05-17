@@ -20,10 +20,10 @@ class Migration(migrations.Migration):
                 ('title', models.CharField(max_length=128)),
                 ('format', models.CharField(max_length=32)),
                 ('hash', models.CharField(max_length=64)),
-                ('expiration_datetime', models.DateTimeField(default=None)),
+                ('expiration_datetime', models.DateTimeField(null=True, blank=True)),
                 ('hidden', models.BooleanField(default=False)),
                 ('submitted', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
             ],
             options={
             },

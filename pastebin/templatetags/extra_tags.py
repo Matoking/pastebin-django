@@ -132,7 +132,7 @@ class TotalCommentCountNode(template.Node):
     Returns total amount of comments posted on the site
     """
     def render(self, context):
-        return Comment.get_comment_count()
+        return Comment.objects.all().count()
     
 @register.tag(name="get_total_comment_count")
 def get_total_comment_count(parser, token):

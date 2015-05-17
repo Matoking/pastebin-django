@@ -89,12 +89,20 @@ def profile(request, username, tab="home", page=1):
     if not profile_user.is_active:
         return render(request, "users/profile/profile_error.html", {"reason": "not_found"}, status=404)
     
+    user_pastes = Paste.objects.filter(user=profile_user)
+    
+    # If the user is viewing his own pastes, also include hidden pastes
+    if request.user != profile_user:
+        user_pastes = user_pastes.filter(hidden=False)
+        
+    total_paste_count = user_pastes.count()
+    
     args = {"profile_user": profile_user,
             "current_page": page,
             "tab": tab,
             
-            "total_favorite_count": Favorite.get_favorite_count(profile_user),
-            "total_paste_count": Paste.get_paste_count(profile_user)}
+            "total_favorite_count": Favorite.objects.filter(user=profile_user).count(),
+            "total_paste_count": total_paste_count}
     
     if tab == "home":
         return home(request, args)
@@ -124,8 +132,12 @@ def home(request, args):
     """
     Display user profile's home with the most recent pastes and favorites
     """
-    args["favorites"] = Favorite.get_favorites(args["profile_user"], count=10)
-    args["pastes"] = Paste.get_pastes(args["profile_user"], count=10)
+    args["favorites"] = Favorite.objects.filter(user=args["profile_user"]).order_by('-added').prefetch_related('paste')[:10]
+    
+    if request.user == args["profile_user"]:
+        args["pastes"] = Paste.objects.get_pastes(args["profile_user"], include_hidden=True, count=10)
+    else:
+        args["pastes"] = Paste.objects.get_pastes(args["profile_user"], include_hidden=False, count=10)
     
     return render(request, "users/profile/home/home.html", args)
     
@@ -136,7 +148,11 @@ def pastes(request, user, args, page=1):
     PASTES_PER_PAGE = 15
     offset = (page-1) * PASTES_PER_PAGE
     
-    args["pastes"] = Paste.get_pastes(user, count=PASTES_PER_PAGE, offset=offset)
+    if request.user == user:
+        args["pastes"] = Paste.objects.get_pastes(user, count=PASTES_PER_PAGE, include_hidden=True, offset=offset)
+    else:
+        args["pastes"] = Paste.objects.get_pastes(user, count=PASTES_PER_PAGE, include_hidden=True, offset=offset)
+        
     args["pages"] = Paginator.get_pages(page, PASTES_PER_PAGE, args["total_paste_count"])
     args["total_pages"] = math.ceil(float(args["total_paste_count"]) / float(PASTES_PER_PAGE))
     
@@ -149,7 +165,7 @@ def favorites(request, user, args, page=1):
     FAVORITES_PER_PAGE = 15
     offset = (page-1) * FAVORITES_PER_PAGE
     
-    args["favorites"] = Favorite.get_favorites(user, count=FAVORITES_PER_PAGE, offset=offset)
+    args["favorites"] = Favorite.objects.filter(user=user).prefetch_related("paste")[offset:FAVORITES_PER_PAGE]
     args["pages"] = Paginator.get_pages(page, FAVORITES_PER_PAGE, args["total_favorite_count"])
     args["total_pages"] = math.ceil(float(args["total_favorite_count"]) / float(FAVORITES_PER_PAGE))
     

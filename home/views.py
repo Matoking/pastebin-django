@@ -51,9 +51,9 @@ def latest_pastes(request, page=1):
     page = int(page)
     
     offset = (page-1) * PASTES_PER_PAGE
-    total_paste_count = Paste.get_paste_count(include_hidden=False)    
+    total_paste_count = Paste.objects.filter(hidden=False).count()    
     
-    pastes = Paste.get_pastes(count=PASTES_PER_PAGE, offset=offset, include_hidden=False)
+    pastes = Paste.objects.get_pastes(count=PASTES_PER_PAGE, offset=offset, include_hidden=False)
     pages = Paginator.get_pages(page, PASTES_PER_PAGE, total_paste_count)
     total_pages = math.ceil(float(total_paste_count) / float(PASTES_PER_PAGE))
     

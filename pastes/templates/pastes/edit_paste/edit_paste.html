@@ -12,7 +12,7 @@
 			<form action="{% url 'pastes:edit_paste' paste.char_id %}" class="form-horizontal" role="form" method="post">
 		        {% csrf_token %}
 		        <div class="{% if form.text.errors %}has-error{% endif %}">
-					<textarea name="text" class="form-control paste-text-field {% if form.text.errors %}has-error{% endif %}" rows="15">{{ paste.text }}</textarea>
+					<textarea name="text" class="form-control paste-text-field {% if form.text.errors %}has-error{% endif %}" rows="15">{{ paste_text }}</textarea>
 				</div>
 				<br>
 				{# Print errors related to the text field here #}

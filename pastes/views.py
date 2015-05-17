@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
 
 from pastes.forms import SubmitPasteForm, EditPasteForm
 from pastes.models import Paste
@@ -16,7 +17,10 @@ def show_paste(request, char_id, raw=False, download=False):
     Show the paste, possibly as raw text or as a download
     """
     # If paste has expired, show the ordinary "paste not found" page
-    paste = Paste.objects.get(char_id=char_id)
+    try:
+        paste = Paste.objects.get(char_id=char_id)
+    except ObjectDoesNotExist:
+        return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)
     
     if paste.is_paste_expired():
         return render(request, "pastes/show_paste/show_error.html", {"reason": "expired"}, status=404)
@@ -25,9 +29,7 @@ def show_paste(request, char_id, raw=False, download=False):
     formatted = True
     if raw == True or download == True:
         formatted = False
-    if paste == None:
-        return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)
-    
+        
     if raw:
         text = paste.get_text(formatted=False)
         response = HttpResponse(text, content_type='text/plain')
@@ -42,9 +44,9 @@ def show_paste(request, char_id, raw=False, download=False):
         paste_favorited = False
         
         if request.user.is_authenticated():
-            paste_favorited = Favorite.is_paste_favorited(request.user, id=paste.id)
+            paste_favorited = Favorite.objects.filter(user=request.user, paste=paste).exists()
             
-        comment_count = Comment.get_comment_count(paste_id=paste.id)
+        comment_count = Comment.objects.all().count()
             
         return render(request, "pastes/show_paste/show_paste.html", {"paste": paste,
                                                                      "paste_favorited": paste_favorited,
@@ -57,36 +59,37 @@ def edit_paste(request, char_id):
     """
     if not request.user.is_authenticated():
         return render(request, "pastes/edit_paste/edit_error.html", {"reason": "not_logged_in"})
-    
-    paste = Paste.get_paste(char_id=char_id, include_text=True, formatted=False)
-    
-    if paste == None:
+    try:
+        paste = Paste.objects.get(char_id=char_id)
+    except ObjectDoesNotExist:
         return render(request, "pastes/edit_paste/edit_error.html", {"reason": "not_found"})
     
-    if paste["user_id"] != request.user.id and not request.user.is_staff:
+    if paste.user != request.user and not request.user.is_staff:
         return render(request, "pastes/edit_paste/edit_error.html", {"reason": "not_owner"})
     
-    if paste["hidden"]:
+    if paste.hidden:
         visibility = "hidden"
     else:
         visibility = "public"
     
-    edit_form = EditPasteForm(request.POST or None, initial={"title": paste["title"],
+    edit_form = EditPasteForm(request.POST or None, initial={"title": paste.title,
                                                              "visibility": visibility,
-                                                             "syntax_highlighting": paste["format"]})
+                                                             "syntax_highlighting": paste.format})
     
     if edit_form.is_valid():
         paste_data = edit_form.cleaned_data
         
-        Paste.update_paste(id=paste["id"],
-                           title=paste_data["title"],
+        paste.update_paste(title=paste_data["title"],
                            text=paste_data["text"],
                            visibility=paste_data["visibility"],
                            format=paste_data["syntax_highlighting"])
         
         return redirect("show_paste", char_id=char_id)
     
+    paste_text = paste.get_text(formatted=False)
+    
     return render(request, "pastes/edit_paste/edit_paste.html", {"paste": paste,
+                                                                 "paste_text": paste_text,
                                                                  
                                                                  "form": edit_form})
         
@@ -97,20 +100,19 @@ def delete_paste(request, char_id):
     if not request.user.is_authenticated():
         return render(request, "pastes/delete_paste/delete_error.html", {"reason": "not_logged_in"})
     
-    paste = Paste.get_paste(char_id=char_id)
-    
-    # Check that the paste exists
-    if paste == None:
+    try:
+        paste = Paste.objects.get(char_id=char_id)
+    except ObjectDoesNotExist:
         return render(request, "pastes/delete_paste/delete_error.html", {"reason": "not_found"})
     
     # Check that the user can delete the paste
-    if paste["user_id"] != request.user.id and not request.user.is_staff:
+    if paste.user != request.user and not request.user.is_staff:
         return render(request, "pastes/delete_paste/delete_error.html", {"reason": "not_owner"})
     
     form = VerifyPasswordForm(request.POST or None, user=request.user)
     
     if form.is_valid():
-        Paste.delete_paste(id=paste["id"])
+        paste.delete_paste()
         
         return render(request, "pastes/delete_paste/paste_deleted.html")
     
@@ -133,11 +135,12 @@ def change_paste_favorite(request):
         response["data"]["message"] = "Not logged in."
     else:
         if action == "add":
-            result = Favorite.add_favorite(request.user, char_id=char_id)
+            favorite = Favorite(user=request.user, paste=Paste.objects.get(char_id=char_id))
+            favorite.save()
             response["data"]["char_id"] = char_id
             response["data"]["favorited"] = True
         elif action == "remove":
-            result = Favorite.remove_favorite(request.user, char_id=char_id)
+            result = Favorite.objects.filter(user=request.user, paste__char_id=char_id).delete()
             response["data"]["char_id"] = char_id
             response["data"]["favorited"] = False
         else:

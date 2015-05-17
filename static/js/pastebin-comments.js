@@ -390,7 +390,7 @@ pastebin.updateComments = function() {
 						  	"<div class=\"comment-text\">{COMMENT_TEXT}</div>" +
 						  "</div></div>";
 		
-		if (comment["edited"] !== null) {
+		if (comment["edited"] != comment["submitted"]) {
 			var edited = new Date(comment["edited"] * 1000);
 			commentHtml = commentHtml.replace("{COMMENT_EDITED}", "<small>, edited </small><b><small class=\"comment-timestamp\" title=\"" + edited.toISOString() + "\">" + edited.toDateString() + "</small></b>");
 		} else {

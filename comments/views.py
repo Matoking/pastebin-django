@@ -1,5 +1,8 @@
 from django.shortcuts import render
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
+
+from pastebin.util import queryset_to_list
 
 from pastes.models import Paste
 from comments.models import Comment
@@ -29,18 +32,21 @@ def get_comments(request):
         response["data"]["message"] = "Comment page was not provided (POST parameter 'page')"
         return HttpResponse(json.dumps(response), status=422)
     
-    paste_id = Paste.get_id(char_id)
-    
-    if paste_id ==  None:
+    try:
+        paste = Paste.objects.get(char_id=char_id)
+    except ObjectDoesNotExist:
         response["status"] = "fail"
         response["data"]["message"] = "The paste couldn't be found."
     else:
-        total_comment_count = Comment.get_comment_count(paste_id=paste_id)
+        total_comment_count = Comment.objects.filter(paste=paste).count()
         
-        response["data"]["comments"] = Comment.get_comments(paste_id=paste_id,
-                                        offset=page*Comment.COMMENTS_PER_PAGE,
-                                        count=Comment.COMMENTS_PER_PAGE,
-                                        datetime_as_unix=True)
+        start = page * Comment.COMMENTS_PER_PAGE
+        end = start + Comment.COMMENTS_PER_PAGE
+        
+        response["data"]["comments"] = queryset_to_list(Comment.objects.filter(paste=paste) \
+                                                                       .select_related("user") \
+                                                                       [start:end],
+                                                                       fields=["id", "text", "submitted", "edited", "user__username=username"])
         response["data"]["page"] = page
         response["data"]["pages"] = math.ceil(float(total_comment_count) / float(Comment.COMMENTS_PER_PAGE))
         
@@ -70,11 +76,11 @@ def add_comment(request):
         response["data"]["message"] = "Comment text was not provided (POST parameter 'text')"
         return HttpResponse(json.dumps(response), status=422)
     
-    paste_id = Paste.get_id(char_id)
-    
-    if paste_id == None:
+    try:
+        paste = Paste.objects.get(char_id=char_id)
+    except ObjectDoesNotExist:
         response["status"] = "fail"
-        response["data"]["message"] = "The paste couldn't be found"
+        response["data"]["message"] = "The paste couldn't be found."
         return HttpResponse(json.dumps(response), status=422)
     
     if not request.user.is_authenticated():
@@ -87,14 +93,17 @@ def add_comment(request):
     if submit_form.is_valid():
         comment_data = submit_form.cleaned_data
         
-        Comment.add_comment(comment_data["text"], request.user, paste_id)
+        comment = Comment(text=comment_data["text"], 
+                          user=request.user,
+                          paste=paste)
+        comment.save()
         
-        total_comment_count = Comment.get_comment_count(paste_id=paste_id)
+        total_comment_count = Comment.objects.filter(paste=paste).count()
         
-        response["data"]["comments"] = Comment.get_comments(paste_id=paste_id,
-                                        offset=0,
-                                        count=Comment.COMMENTS_PER_PAGE,
-                                        datetime_as_unix=True)
+        response["data"]["comments"] = queryset_to_list(Comment.objects.filter(paste=paste) \
+                                                                       .select_related("user") \
+                                                                       [0:Comment.COMMENTS_PER_PAGE],
+                                                                       fields=["id", "text", "submitted", "edited", "user__username=username"])
         response["data"]["page"] = 0
         response["data"]["pages"] = math.ceil(float(total_comment_count) / float(Comment.COMMENTS_PER_PAGE))
         
@@ -122,7 +131,12 @@ def edit_comment(request):
         response["data"]["message"] = "Paste ID was not provided (POST parameter 'char_id')"
         return HttpResponse(json.dumps(response), status=422)
     
-    paste_id = Paste.get_id(char_id)
+    try:
+        paste = Paste.objects.get(char_id=char_id)
+    except ObjectDoesNotExist:
+        response["status"] = "fail"
+        response["data"]["message"] = "The paste couldn't be found."
+        return HttpResponse(json.dumps(response))
     
     if "id" in request.POST:
         id = int(request.POST["id"])
@@ -141,14 +155,14 @@ def edit_comment(request):
         response["data"]["message"] = "You are not logged in."
         return HttpResponse(json.dumps(response), status=422)
     
-    comment = Comment.get_comment(id)
-    
-    if comment == None:
+    try:
+        comment = Comment.objects.get(id=id)
+    except ObjectDoesNotExist:
         response["status"] = "fail"
         response["data"]["message"] = "The comment doesn't exist."
         return HttpResponse(json.dumps(response), status=400)
     
-    if comment["user_id"] != request.user.id:
+    if comment.user != request.user:
         response["status"] = "fail"
         response["data"]["message"] = "You are trying to edit someone else's comment."
         return HttpResponse(json.dumps(response), status=422)
@@ -158,15 +172,19 @@ def edit_comment(request):
     if submit_form.is_valid():
         comment_data = submit_form.cleaned_data
         
-        Comment.update_comment(comment_data["text"], id)
+        comment.text = comment_data["text"]
+        comment.save()
         
-        total_comment_count = Comment.get_comment_count(paste_id=paste_id)
+        total_comment_count = Comment.objects.filter(paste=paste).count()
         
-        response["data"]["edited_comment_id"] = comment["id"]
-        response["data"]["comments"] = Comment.get_comments(paste_id=paste_id,
-                                                            offset=page*Comment.COMMENTS_PER_PAGE,
-                                                            count=Comment.COMMENTS_PER_PAGE,
-                                                            datetime_as_unix=True)
+        start = page * Comment.COMMENTS_PER_PAGE
+        end = start + Comment.COMMENTS_PER_PAGE
+        
+        response["data"]["edited_comment_id"] = comment.id
+        response["data"]["comments"] = queryset_to_list(Comment.objects.filter(paste=paste) \
+                                                                       .select_related("user") \
+                                                                       [start:end],
+                                                                       fields=["id", "text", "submitted", "edited", "user__username=username"])
         response["data"]["page"] = page
         response["data"]["pages"] = math.ceil(float(total_comment_count) / float(Comment.COMMENTS_PER_PAGE))
         
@@ -205,43 +223,46 @@ def delete_comment(request):
         response["data"]["message"] = "Comment page was not provided (POST parameter 'page')"
         return HttpResponse(json.dumps(response), status=422)
     
-    paste_id = Paste.get_id(char_id)
+    try:
+        paste = Paste.objects.get(char_id=char_id)
+    except ObjectDoesNotExist:
+        response["status"] = "fail"
+        response["data"]["message"] = "The paste couldn't be found."
+        return HttpResponse(json.dumps(response), status=422)
     
     if not request.user.is_authenticated():
         response["status"] = "fail"
         response["data"]["message"] = "You are not logged in."
         return HttpResponse(json.dumps(response), status=422)
-    
-    comment = Comment.get_comment(id)
-    
-    if comment == None:
+    try:
+        comment = Comment.objects.get(id=id)
+    except ObjectDoesNotExist:
         response["status"] = "fail"
         response["data"]["message"] = "The comment doesn't exist."
         return HttpResponse(json.dumps(response), status=400)
     
-    if comment["user_id"] != request.user.id:
+    if comment.user != request.user:
         response["status"] = "fail"
         response["data"]["message"] = "You are trying to delete someone else's comment."
         return HttpResponse(json.dumps(response), status=422)
     
-    Comment.delete_comment(id)
+    comment.delete()
     
-    if paste_id ==  None:
-        response["status"] = "fail"
-        response["data"]["message"] = "The paste couldn't be found."
-    else:
-        total_comment_count = Comment.get_comment_count(paste_id=paste_id)
-        
-        response["data"]["comments"] = Comment.get_comments(paste_id=paste_id,
-                                        offset=page*Comment.COMMENTS_PER_PAGE,
-                                        count=Comment.COMMENTS_PER_PAGE,
-                                        datetime_as_unix=True)
-        response["data"]["page"] = page
-        response["data"]["pages"] = math.ceil(float(total_comment_count) / float(Comment.COMMENTS_PER_PAGE))
-        
-        if response["data"]["pages"] == 0:
-            response["data"]["pages"] = 1
-        
-        response["data"]["total_comment_count"] = total_comment_count
+    total_comment_count = Comment.objects.filter(paste=paste).count()
+    
+    start = page * Comment.COMMENTS_PER_PAGE
+    end = start + Comment.COMMENTS_PER_PAGE
+    
+    response["data"]["comments"] = queryset_to_list(Comment.objects.filter(paste=paste) \
+                                                                   .select_related("user") \
+                                                                   [start:end],
+                                                                   fields=["id", "text", "submitted", "edited", "user__username=username"])
+    response["data"]["page"] = page
+    response["data"]["pages"] = math.ceil(float(total_comment_count) / float(Comment.COMMENTS_PER_PAGE))
+    
+    if response["data"]["pages"] == 0:
+        response["data"]["pages"] = 1
+    
+    response["data"]["total_comment_count"] = total_comment_count
     
     return HttpResponse(json.dumps(response))

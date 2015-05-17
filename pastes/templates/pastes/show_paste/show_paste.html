@@ -35,6 +35,7 @@
 						<div class="col-md-3">
 							<p><b>SUBMITTED BY:</b> {% if paste.username %}<b><a href="{% url "users:profile" paste.username %}">{{ paste.username }}</a></b>{% else %}Guest{% endif %}</p>
 							<p><b>DATE:</b> {{ paste.submitted }}</p>
+							<p><b>HITS:</b> {{ paste_hits }}</p>
 							<p><b>FORMAT:</b> {{ paste.format|syntax_format_to_text }}</p>
 							{% if paste.expiration_date %}
 								{% with timesince_seconds=paste.expiration_date|timeuntil_in_seconds %}

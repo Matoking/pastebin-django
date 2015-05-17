@@ -10,6 +10,8 @@ from comments.models import Comment
 from users.models import Favorite
 from users.forms import VerifyPasswordForm
 
+from ipware.ip import get_real_ip
+
 import json
     
 def show_paste(request, char_id, raw=False, download=False):
@@ -46,10 +48,19 @@ def show_paste(request, char_id, raw=False, download=False):
         if request.user.is_authenticated():
             paste_favorited = Favorite.objects.filter(user=request.user, paste=paste).exists()
             
+        # Add a hit to this paste if the hit is an unique (1 hit = 1 IP address once per 24 hours)
+        ip_address = get_real_ip(request)
+        
+        if ip_address != None:
+            paste_hits = paste.add_hit(ip_address)
+        else:
+            paste_hits = paste.get_hit_count()
+            
         comment_count = Comment.objects.all().count()
             
         return render(request, "pastes/show_paste/show_paste.html", {"paste": paste,
                                                                      "paste_favorited": paste_favorited,
+                                                                     "paste_hits": paste_hits,
                                                                      
                                                                      "comment_count": comment_count})
         

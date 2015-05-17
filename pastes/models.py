@@ -3,6 +3,8 @@ from django.db.models import Q
 
 from django.contrib.auth.models import User
 
+from django_redis import get_redis_connection
+
 from sql import cursor
 
 import highlighting
@@ -207,6 +209,36 @@ class Paste(models.Model):
             self.delete()
             
         return True
+    
+    def get_hit_count(self):
+        """
+        Get hit count for the paste
+        """
+        con = get_redis_connection("persistent")
+        
+        result = con.get("p-%s-hits" % self.id)
+        
+        if result == None:
+            return 0
+        else:
+            return int(result)
+        
+    def add_hit(self, ip_address):
+        """
+        Add a hit by an IP address if it hasn't been added yet
+        """
+        con = get_redis_connection("persistent")
+        
+        if con.get("p-%s-hit-%s" % (self.id, ip_address)):
+            hits = con.get("p-%s-hits" % self.id)
+            if hits == None:
+                return 0
+            else:
+                return int(hits)
+        else:
+            # Add an entry for this hit and store it for 24 hours
+            con.setex("p-%s-hit-%s" % (self.id, ip_address), 86400, 1)
+            return con.incr("p-%s-hits" % self.id)
     
 class PasteContent(models.Model):
     """

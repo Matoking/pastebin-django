@@ -35,7 +35,6 @@
 						<div class="col-md-3">
 							<p><b>SUBMITTED BY:</b> {% if paste.username %}<b><a href="{% url "users:profile" paste.username %}">{{ paste.username }}</a></b>{% else %}Guest{% endif %}</p>
 							<p><b>DATE:</b> {{ paste.submitted }}</p>
-							<p><b>HITS:</b> {{ paste_hits }}</p>
 							<p><b>FORMAT:</b> {{ paste.format|syntax_format_to_text }}</p>
 							{% if paste.expiration_date %}
 								{% with timesince_seconds=paste.expiration_date|timeuntil_in_seconds %}
@@ -48,6 +47,7 @@
 							<a class="btn btn-primary btn-sm" href="{% url "download_paste" paste.char_id %}"><span class="glyphicon glyphicon-download"></span> Download</a>
 						</div>
 						<div class="col-md-3">
+							<p><b>HITS:</b> {{ paste_hits }}</p>
 							<p><b>COMMENTS: </b> {{ comment_count }}</p>
 							<button onclick="pastebin.scrollToComments()" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-menu-down"></span> Go to comments</button>
 						</div>
@@ -88,5 +88,5 @@
 	<script src="{% static 'js/jquery.timeago.js' %}"></script>
 	<script src="{% static 'js/pastebin-favorite.js' %}"></script>
 	<script src="{% static 'js/pastebin-comments.js' %}"></script>
-	{% endblock %}
+{% endblock %}
 {% endblock %}

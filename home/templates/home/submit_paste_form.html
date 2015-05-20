@@ -4,25 +4,92 @@
 		<textarea name="text" class="form-control paste-text-field {% if form.text.errors %}has-error{% endif %}" rows="15"></textarea>
 	</div>
 	<br>
-	{% if user.is_authenticated %}
-	<div class="form-group">
-		<div class="col-sm-2"></div>
-		<div class="col-sm-10">
-			<p class="form-control-static">You are uploading this paste as user <b>{{ user.get_username }}</b></p>
+	<!-- Tabs -->
+	<div role="tabpanel">
+		<ul class="nav nav-tabs submit-paste-tabs" role="tablist">
+			<li role="presentation" class="active"><a href="#main-tab" aria-controls="main-tab" role="tab" data-toggle="tab">Main</a></li>
+			<li role="presentation"><a href="#encryption-tab" aria-controls="encryption-tab" role="tab" data-toggle="tab">Encryption</a></li>
+		</ul>
+		<div class="tab-content">
+			<div role="tabpanel" class="tab-pane fade in active" id="main-tab">
+				{% if user.is_authenticated %}
+				<div class="form-group">
+					<div class="col-sm-2"></div>
+					<div class="col-sm-10">
+						<p class="form-control-static">You are uploading this paste as user <b>{{ user.get_username }}</b></p>
+					</div>
+				</div>
+				{% endif %}
+				{# Print errors related to the text field here #}
+				{% if form.text.errors %}
+				<div class="alert alert-danger">
+					{{ form.text.errors }}
+				</div>
+				{% endif %}
+				{% include "form.html" with form_label_col=2 form_field_col=8 exclude="text" %}
+				<!-- Submit -->
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<button class="btn btn-primary">Submit paste</button>
+					</div>
+				</div>
+			</div>
+			<div role="tabpanel" class="tab-pane fade" id="encryption-tab">
+				<p>You can encrypt your paste to prevent people from viewing the content of your paste unless a correct password is provided. The encryption and decryption are performed client-side, meaning we never receive an unencrypted copy of the paste.</p>
+				<p><b>Note the following:</b></p>
+				<ul>
+					<li><b style="color: red;">If you lose your password, we can't recover the content of your paste.</b></li>
+					<li>Syntax highlighting can't be used with encrypted pastes.</li>
+				</ul>
+				<!-- Show password -->
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<div class="checkbox">
+							<label>
+								<input id="encryption-show-password" type="checkbox"> Show password
+							</label>
+						</div>
+					</div>
+				</div>
+				<!-- Password -->
+				<div id="encryption-password-group" class="form-group">
+					<label class="col-sm-2 control-label" for="encryption-password">Password</label>
+					<div class="col-sm-6">
+						<input id="encryption-password" class="form-control" type="password" maxlength="128"></input>
+					</div>
+				</div>
+				<!-- Confirm password -->
+				<div id="encryption-confirm-password-group" class="form-group">
+					<label class="col-sm-2 control-label" for="encryption-confirm-password">Confirm password</label>
+					<div class="col-sm-6">
+						<input id="encryption-confirm-password" class="form-control" type="password" maxlength="128"></input>
+					</div>
+				</div>
+				<!-- Generate password -->
+				<div class="form-group">
+					<label class="col-sm-2 control-label" for="encryption-generate-password">Generate password</label>
+					<div class="col-sm-6">
+						<button type="button" id="encryption-generate-password" class="btn btn-primary">Generate password</button>
+					</div>
+				</div>
+				<!-- Encrypt password -->
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-6">
+						<button type="button" disabled="true" id="encryption-encrypt" class="btn btn-primary">Encrypt</button>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
-	{% endif %}
-	{# Print errors related to the text field here #}
-	{% if form.text.errors %}
-	<div class="alert alert-danger">
-		{{ form.text.errors }}
-	</div>
-	{% endif %}
-	{% include "form.html" with form_label_col=2 form_field_col=8 exclude="text" %}
-	<!-- Submit -->
-	<div class="form-group">
-		<div class="col-sm-offset-2 col-sm-10">
-			<button class="btn btn-primary">Submit paste</button>
-		</div>
-	</div>
+	<!-- Enable tabs -->
+	<script>
+		$('#main-tab a').click(function (e) {
+			  e.preventDefault();
+			  $(this).tab('show');
+		});
+		$('#encryption-tab a').click(function (e) {
+			  e.preventDefault();
+			  $(this).tab('show');
+		});
+	</script>
 </form>

@@ -4,6 +4,10 @@
     resize: none;
 }
 
+.submit-paste-tabs {
+	margin-bottom: 15px;
+}
+
 .comment-text-field {
 	resize: none;
 }

@@ -66,6 +66,7 @@ class Paste(models.Model):
     
     expiration_datetime = models.DateTimeField(null=True, blank=True)
     
+    encrypted = models.BooleanField(default=False)
     hidden = models.BooleanField(default=False)
     
     submitted = models.DateTimeField(auto_now_add=True)
@@ -216,7 +217,7 @@ class Paste(models.Model):
         """
         con = get_redis_connection("persistent")
         
-        result = con.get("p-%s-hits" % self.id)
+        result = con.get("paste:%s:hits" % self.id)
         
         if result == None:
             return 0
@@ -229,16 +230,16 @@ class Paste(models.Model):
         """
         con = get_redis_connection("persistent")
         
-        if con.get("p-%s-hit-%s" % (self.id, ip_address)):
-            hits = con.get("p-%s-hits" % self.id)
+        if con.get("paste:%s:hit:%s" % (self.id, ip_address)):
+            hits = con.get("paste:%s:hits" % self.id)
             if hits == None:
                 return 0
             else:
                 return int(hits)
         else:
             # Add an entry for this hit and store it for 24 hours
-            con.setex("p-%s-hit-%s" % (self.id, ip_address), 86400, 1)
-            return con.incr("p-%s-hits" % self.id)
+            con.setex("paste:%s:hit:%s" % (self.id, ip_address), 86400, 1)
+            return con.incr("paste:%s:hits" % self.id)
     
 class PasteContent(models.Model):
     """

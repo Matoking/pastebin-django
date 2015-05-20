@@ -15,3 +15,8 @@
 	</div>
 </div>
 {% endblock %}
+{% block extra_js %}
+	{% load staticfiles %}
+	<script src="{% static 'js/sjcl.js' %}"></script>
+	<script src="{% static 'js/pastebin-submit.js' %}"></script>
+{% endblock %}

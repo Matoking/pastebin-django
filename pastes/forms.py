@@ -35,6 +35,9 @@ class SubmitPasteForm(forms.Form):
     
     syntax_highlighting = forms.ChoiceField(choices=highlighting.settings.LANGUAGES)
     
+    encrypted = forms.BooleanField(initial=False,
+                                   widget=forms.HiddenInput())
+    
     def clean_title(self):
         """
         Replace the title with Untitled if it is not provided

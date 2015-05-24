@@ -13,6 +13,7 @@
 			
 			var pastebin_char_id = "{{ paste.char_id }}";
 			var pastebin_paste_title = "{{ paste.title }}";
+			var pastebin_paste_format = "{{ paste.format }}";
 			
 			var pastebin_paste_favorited = {% if paste_favorited %}true{% else %}false{% endif %};
 			var pastebin_total_comment_count = {{ comment_count }};
@@ -28,7 +29,7 @@
 			<br>
 			<div class="panel panel-info">
 				<div class="panel-heading">
-					<h1 class="panel-title">{{ paste.title }}</h1>
+					<h1 class="panel-title">{% if paste.encrypted %}<span class="glyphicon glyphicon-lock"></span> {% endif %}{{ paste.title }}</h1>
 				</div>
 				<div class="panel-body">
 					<div class="container">
@@ -69,7 +70,27 @@
 				</div>
 			</div>
 			<hr>
+			{% if not paste.encrypted %}
+			{# PASTE NOT ENCRYPTED #}
 			{{ paste.get_text|safe }}
+			{% else %}
+			{# PASTE ENCRYPTED #}
+			<pre id="encrypted-text" style="display: none;"><code>{{ paste.get_text|safe }}</code></pre>
+			<div id="paste-decrypt-form" class="form-horizontal">
+					<p class="col-sm-offset-2">This paste is encrypted and requires a password in order to be displayed.</p>
+					<div class="form-group">
+						<label class="col-sm-2 control-label" for="paste-password">Password</label>
+						<div class="col-sm-4">
+							<input class="form-control" id="paste-password" type="password"></input>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-offset-2 col-sm-6">
+							<button id="paste-decrypt" class="btn btn-primary">Decrypt</button>
+						</div>
+					</div>
+			</div>
+			{% endif %}
 			<!-- Comments -->
 			<hr>
 			<div id="comment-panel" class="panel panel-default">
@@ -88,5 +109,15 @@
 	<script src="{% static 'js/jquery.timeago.js' %}"></script>
 	<script src="{% static 'js/pastebin-favorite.js' %}"></script>
 	<script src="{% static 'js/pastebin-comments.js' %}"></script>
+	{% if paste.encrypted %}
+	<script src="{% static 'js/pastebin-decrypt.js' %}"></script>
+	<script src="{% static 'js/sjcl.js' %}"></script>
+	<script src="{% static 'js/prism.js' %}" data-manual></script>
+	{% endif %}
+{% endblock %}
+{% block extra_head %}
+{% if paste.encrypted %}
+<link href="{% static 'css/prism.css' %}" rel="stylesheet">
+{% endif %}
 {% endblock %}
 {% endblock %}

@@ -103,12 +103,12 @@ class Paste(models.Model):
         
         If formatted is True, text is returned in its HTML formatted form
         """
-        if formatted:
+        if formatted and not self.encrypted:
             paste_content = PasteContent.objects.get(hash=self.hash, format=self.format)
         else:
             paste_content = PasteContent.objects.get(hash=self.hash, format="none")
        
-        return paste_content.get_text()
+        return paste_content.text
     
     def is_paste_expired(self):
         """
@@ -127,7 +127,7 @@ class Paste(models.Model):
         else:
             return False
     
-    def add_paste(self, text, user=None, title="Untitled", expiration=None, visibility=None, format="text"):
+    def add_paste(self, text, user=None, title="Untitled", expiration=None, visibility=None, format="text", encrypted=False):
         """
         Add paste with the provided title and text
         
@@ -138,6 +138,8 @@ class Paste(models.Model):
         
         self.title = title
         self.format = format
+        
+        self.encrypted = encrypted
         
         # Make paste hidden if its visibility is hidden (private visibility may be added later)
         if visibility == Paste.HIDDEN:
@@ -168,7 +170,9 @@ class Paste(models.Model):
             formatted = PasteContent()
             
             unformatted.add_paste_text(text, None)
-            formatted.add_paste_text(text, format)
+            
+            if not encrypted:
+                formatted.add_paste_text(text, format)
         
         return self.char_id
     
@@ -248,15 +252,6 @@ class PasteContent(models.Model):
     hash = models.CharField(max_length=64)
     format = models.CharField(max_length=32)
     text = models.TextField()
-    
-    def get_text(self):
-        """
-        Returns paste text, either as-is or formatted to be displayed in HTML
-        """
-        if self.text == "":
-            self.text = self.objects.get(hash=self.hash, format=self.format).text
-            
-        return self.text
         
     def add_paste_text(self, text, format=None):
         """

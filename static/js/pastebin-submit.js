@@ -108,7 +108,8 @@ pastebin.encryptPaste = function() {
 	
 	text = sjcl.encrypt(password, text);
 	
-	$("[name='text']").val(text).attr("disabled", true);
+	$("[name='text']").val(text).attr("readonly", true);
+	$("[name='encrypted']").val(true);
 	
 	pastebin_paste_encrypted = true;
 	

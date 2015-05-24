@@ -33,7 +33,8 @@ def home(request):
                                   text=paste_data["text"],
                                   expiration=paste_data["expiration"],
                                   visibility=paste_data["visibility"],
-                                  format=paste_data["syntax_highlighting"])
+                                  format=paste_data["syntax_highlighting"],
+                                  encrypted=paste_data["encrypted"])
         
         # Redirect to the newly created paste
         return redirect("show_paste", char_id=char_id)

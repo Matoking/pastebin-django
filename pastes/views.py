@@ -26,11 +26,6 @@ def show_paste(request, char_id, raw=False, download=False):
     
     if paste.is_paste_expired():
         return render(request, "pastes/show_paste/show_error.html", {"reason": "expired"}, status=404)
-    
-    # Get the formatted paste text unless the user is downloading the paste or viewing it as raw text
-    formatted = True
-    if raw == True or download == True:
-        formatted = False
         
     if raw:
         text = paste.get_text(formatted=False)
@@ -56,7 +51,7 @@ def show_paste(request, char_id, raw=False, download=False):
         else:
             paste_hits = paste.get_hit_count()
             
-        comment_count = Comment.objects.all().count()
+        comment_count = Comment.objects.filter(paste=paste).count()
             
         return render(request, "pastes/show_paste/show_paste.html", {"paste": paste,
                                                                      "paste_favorited": paste_favorited,

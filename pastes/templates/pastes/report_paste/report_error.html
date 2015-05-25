@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="page-header">
+		        <h1>Report paste</h1>
+		    </div>
+			<div class="alert alert-warning">
+				{% if reason == "not_found" %}
+				<strong>Paste not found</strong><br>
+				The paste you tried to report was not found.
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

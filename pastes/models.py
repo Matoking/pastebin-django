@@ -1,8 +1,10 @@
 from django.db import models, transaction, connection
 from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib.auth.models import User
 
+from django.core.cache import cache
 from django_redis import get_redis_connection
 
 from sql import cursor
@@ -57,6 +59,10 @@ class Paste(models.Model):
     ONE_WEEK = "1w"
     ONE_MONTH = "1month"
     
+    # Removal types
+    ADMIN_REMOVAL = 1
+    USER_REMOVAL = 2
+    
     char_id = models.CharField(max_length=8)
     user = models.ForeignKey(User, null=True, blank=True)
     
@@ -68,6 +74,14 @@ class Paste(models.Model):
     
     encrypted = models.BooleanField(default=False)
     hidden = models.BooleanField(default=False)
+    
+    # Is the paste removed (removed from view but not deleted)
+    removed = models.IntegerField(default=0)
+    removal_reason = models.TextField(default="")
+    
+    # Has the paste been deleted (paste content deleted unless another paste
+    # also has it)
+    deleted = models.BooleanField(default=False)
     
     submitted = models.DateTimeField(auto_now_add=True)
     
@@ -104,13 +118,27 @@ class Paste(models.Model):
         If formatted is True, text is returned in its HTML formatted form
         """
         if formatted and not self.encrypted:
+            cache_result = cache.get("paste:%s:formatted_text" % self.id)
+            
+            if cache_result != None:
+                return cache_result
+            
             paste_content = PasteContent.objects.get(hash=self.hash, format=self.format)
+            
+            cache.set("paste:%s:formatted_text" % self.id, paste_content.text)
         else:
+            cache_result = cache.get("paste:%s:text" % self.id)
+            
+            if cache_result != None:
+                return cache_result
+            
             paste_content = PasteContent.objects.get(hash=self.hash, format="none")
+            
+            cache.set("paste:%s:text" % self.id, paste_content.text)
        
         return paste_content.text
     
-    def is_paste_expired(self):
+    def is_expired(self):
         """
         Check if the paste has expired
         
@@ -123,6 +151,16 @@ class Paste(models.Model):
         current_datetime = datetime.datetime.now()
         
         if self.expiration_datetime > current_datetime:
+            return True
+        else:
+            return False
+        
+    def is_removed(self):
+        """
+        Has the paste been removed (paste still exists but can't be viewed),
+        usually due to a paste report
+        """
+        if self.removed > 0:
             return True
         else:
             return False
@@ -201,9 +239,26 @@ class Paste(models.Model):
             unformatted.add_paste_text(text, None)
             formatted.add_paste_text(text, format)
     
-    def delete_paste(self):
+    def remove_paste(self, type=ADMIN_REMOVAL, reason=""):
         """
-        Delete the paste
+        Remove the paste from being viewed
+        """
+        with transaction.atomic():
+            from favorites.models import Favorite
+            
+            # Delete favorites linked to this paste first
+            Favorite.objects.filter(paste=self).delete()
+            
+            self.removed = type
+            self.removal_reason = reason
+        
+            self.save()
+            
+        return True
+    
+    def delete_paste(self, type=ADMIN_REMOVAL, reason=""):
+        """
+        Delete the paste completely
         """    
         with transaction.atomic():
             from favorites.models import Favorite
@@ -211,7 +266,20 @@ class Paste(models.Model):
             # Delete favorites linked to this paste first
             Favorite.objects.filter(paste=self).delete()
             
-            self.delete()
+            self.removed = type
+            self.removal_reason = reason
+            
+            self.deleted = True
+            
+            hash = self.hash
+            
+            # If another paste has the same content, don't delete the actual paste content
+            if Paste.objects.filter(hash=self.hash, format="none").count() == 1:
+                PasteContent.objects.filter(hash=self.hash).delete()
+                
+            self.hash = "N/A"
+            
+            self.save()
             
         return True
     
@@ -244,6 +312,9 @@ class Paste(models.Model):
             # Add an entry for this hit and store it for 24 hours
             con.setex("paste:%s:hit:%s" % (self.id, ip_address), 86400, 1)
             return con.incr("paste:%s:hits" % self.id)
+        
+    def __unicode__(self):
+        return self.title
     
 class PasteContent(models.Model):
     """
@@ -268,6 +339,18 @@ class PasteContent(models.Model):
         
         paste_content = PasteContent(hash=hash, format=format, text=text)
         paste_content.save()
+        
+class PasteReport(models.Model):
+    """
+    Reports regarding pastes
+    """
+    paste = models.ForeignKey(Paste)
+    user = models.ForeignKey(User, null=True, blank=True)
+    
+    type = models.CharField(max_length=32)
+    text = models.TextField()
+    
+    checked = models.BooleanField(default=False)
         
 class LatestPastes(object):
     @staticmethod

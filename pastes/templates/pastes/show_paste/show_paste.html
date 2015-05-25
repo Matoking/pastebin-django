@@ -59,10 +59,11 @@
 								{% else %}
 								<button id="favorite-button" type="button" class="btn btn-info btn-sm"><span class='glyphicon glyphicon-star'></span> Add to favorites</button>
 								{% endif %}
+								<a class="btn btn-danger btn-sm" href="{% url "pastes:report_paste" paste.char_id %}"><span class="glyphicon glyphicon-warning-sign"></span> Report</a>
 								
 								{% if paste.user_id == user.id or user.is_staff %}
-								<a class="btn btn-primary btn-sm" data="tooltip" title="Edit paste" href="{% url "pastes:edit_paste" paste.char_id %}"><span class="glyphicon glyphicon-pencil"></span> Edit paste</a>
-								<a class="btn btn-danger btn-sm" href="{% url "pastes:delete_paste" paste.char_id %}"><span class="glyphicon glyphicon-remove"></span> Delete paste</a>
+								<a class="btn btn-primary btn-sm" data="tooltip" title="Edit paste" href="{% url "pastes:edit_paste" paste.char_id %}"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+								<a class="btn btn-danger btn-sm" href="{% url "pastes:delete_paste" paste.char_id %}"><span class="glyphicon glyphicon-remove"></span> Delete</a>
 								{% endif %}
 							{% endif %}
 						</div>

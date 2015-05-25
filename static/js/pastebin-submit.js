@@ -83,6 +83,7 @@ pastebin.generateRandomPassword = function() {
 	pastebin.setPasswordVisible(true);
 	pastebin.updateEncryptionTab();
 	
+	$("#encryption-show-password").prop("checked", true);
 	$("#encryption-password").select();
 };
 

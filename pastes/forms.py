@@ -33,7 +33,8 @@ class SubmitPasteForm(forms.Form):
 
     visibility = forms.ChoiceField(choices=VISIBILITY_CHOICES)
     
-    syntax_highlighting = forms.ChoiceField(choices=highlighting.settings.LANGUAGES)
+    syntax_highlighting = forms.ChoiceField(choices=highlighting.settings.LANGUAGES,
+                                            help_text="Languages marked with * are also supported with encrypted pastes.")
     
     encrypted = forms.BooleanField(initial=False,
                                    widget=forms.HiddenInput())
@@ -74,3 +75,21 @@ class EditPasteForm(forms.Form):
             title = "Untitled"
             
         return title
+    
+class ReportPasteForm(forms.Form):
+    """
+    Form to report a paste
+    """
+    REASONS = (
+        ("illegal_content", "Illegal content"),
+        ("adult_content", "Adult content"),
+        ("spam", "Spam"),
+        ("personal_information", "Personal information"),
+        ("other", "Other")
+    )
+    
+    reason = forms.ChoiceField(choices=REASONS)
+    text = forms.CharField(min_length=1,
+                           max_length=4096,
+                           required=False,
+                           widget=forms.Textarea)

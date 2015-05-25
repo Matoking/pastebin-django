@@ -23,7 +23,16 @@
 	padding-top: 0px !important;
 	padding-bottom: 0px !important;
 	overflow-y: hidden !important;
-};
+}
+
+/* form-actions was removed in Bootstrap 3, so add it back here */
+.form-actions {
+	padding: 17px 0px 18px;
+	margin-top: 18px;
+	margin-bottom: 18px;
+	background-color: #F5F5F5;
+	border-top: 1px solid #E5E5E5;
+}
 
 /* Loading spinner */
 .loader {
@@ -40,6 +49,7 @@
   -ms-transform: translateZ(0);
   transform: translateZ(0);
 }
+
 @-webkit-keyframes load4 {
   0%,
   100% {

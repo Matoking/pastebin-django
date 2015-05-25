@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
-from pastes.forms import SubmitPasteForm, EditPasteForm
-from pastes.models import Paste
+from pastes.forms import SubmitPasteForm, EditPasteForm, ReportPasteForm
+from pastes.models import Paste, PasteReport
 
 from comments.models import Comment
 
@@ -24,8 +24,16 @@ def show_paste(request, char_id, raw=False, download=False):
     except ObjectDoesNotExist:
         return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)
     
-    if paste.is_paste_expired():
+    if paste.is_expired():
         return render(request, "pastes/show_paste/show_error.html", {"reason": "expired"}, status=404)
+    if paste.is_removed():
+        if paste.removed == Paste.USER_REMOVAL:
+            return render(request, "pastes/show_paste/show_error.html", {"reason": "user_removed",
+                                                                         "removal_reason": paste.removal_reason}, status=404)
+        elif paste.removed == Paste.ADMIN_REMOVAL:
+            return render(request, "pastes/show_paste/show_error.html", {"reason": "admin_removed",
+                                                                         "removal_reason": paste.removal_reason}, status=404)
+            
         
     if raw:
         text = paste.get_text(formatted=False)
@@ -123,6 +131,37 @@ def delete_paste(request, char_id):
         return render(request, "pastes/delete_paste/paste_deleted.html")
     
     return render(request, "pastes/delete_paste/delete_paste.html", {"paste": paste,
+                                                                     "form": form})
+    
+def report_paste(request, char_id):
+    """
+    Report a paste
+    """
+    try:
+        paste = Paste.objects.get(char_id=char_id)
+    except ObjectDoesNotExist:
+        return render(request, "pastes/report_paste/report_error.html", {"reason": "not_found"})
+    
+    user = None
+    
+    if request.user.is_authenticated():
+        user = request.user
+    
+    form = ReportPasteForm(request.POST or None)
+    
+    if form.is_valid():
+        report_data = form.cleaned_data
+        report = PasteReport(paste=paste,
+                             user=user,
+                             
+                             type=report_data["reason"],
+                             text=report_data["text"])
+        
+        report.save()
+        
+        return render(request, "pastes/report_paste/paste_reported.html")
+    
+    return render(request, "pastes/report_paste/report_paste.html", {"paste": paste,
                                                                      "form": form})
     
         

@@ -214,7 +214,7 @@ class Paste(models.Model):
         
         return self.char_id
     
-    def update_paste(self, text="", title="", visibility=None, format="text"):
+    def update_paste(self, text="", title="", visibility=None, format="text", encrypted=False):
         """
         Change the paste text on an existing paste
         """
@@ -229,6 +229,8 @@ class Paste(models.Model):
             
         self.hash = hashlib.sha256(text.encode('utf-8')).hexdigest()
             
+        self.encrypted = encrypted
+            
         with transaction.atomic():
             self.save()
             
@@ -237,7 +239,13 @@ class Paste(models.Model):
             formatted = PasteContent()
             
             unformatted.add_paste_text(text, None)
-            formatted.add_paste_text(text, format)
+            
+            if not encrypted:
+                formatted.add_paste_text(text, format)
+                
+            # Clear cache
+            cache.delete("paste:%s:formatted_text" % self.id)
+            cache.delete("paste:%s:text" % self.id)
     
     def remove_paste(self, type=ADMIN_REMOVAL, reason=""):
         """

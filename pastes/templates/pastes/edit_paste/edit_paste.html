@@ -12,8 +12,15 @@
 			<form action="{% url 'pastes:edit_paste' paste.char_id %}" class="form-horizontal" role="form" method="post">
 		        {% csrf_token %}
 		        <div class="{% if form.text.errors %}has-error{% endif %}">
-					<textarea name="text" class="form-control paste-text-field {% if form.text.errors %}has-error{% endif %}" rows="15">{{ paste_text }}</textarea>
+					<textarea name="text" class="form-control paste-text-field {% if form.text.errors %}has-error{% endif %}" rows="15">{% if not paste.encrypted %}{{ paste_text }}{% endif %}</textarea>
 				</div>
+				{% if paste.encrypted %}
+				<br>
+				<div class="alert alert-warning">
+					<strong>Editing an encrypted paste</strong><br>
+					You are editing an encrypted paste. You will need to encrypt your paste again if you wish to keep your paste encrypted.
+				</div>
+				{% endif %}
 				<br>
 				{# Print errors related to the text field here #}
 				{% if form.text.errors %}
@@ -21,14 +28,21 @@
 					{{ form.text.errors }}
 				</div>
 				{% endif %}
-				{% include "form.html" with form_label_col=2 form_field_col=8 exclude="text" %}
-				<div class="form-group">
-		            <div class="col-sm-offset-2 col-sm-10">
-		                <button type="submit" class="btn btn-primary">Update</button>
-		            </div>
+				<div role="tabpanel">
+					{% include "home/submit_paste_tabs.html" %}
+					<div class="form-group form-actions">
+			            <div class="col-sm-offset-2 col-sm-10">
+			                <button type="submit" class="btn btn-primary">Update</button>
+			            </div>
+			        </div>
 		        </div>
 		    </form>
 		</div>
 	</div>
 </div>
+{% endblock %}
+{% block extra_js %}
+	{% load staticfiles %}
+	<script src="{% static 'js/sjcl.js' %}"></script>
+	<script src="{% static 'js/pastebin-submit.js' %}"></script>
 {% endblock %}

@@ -96,7 +96,8 @@ def edit_paste(request, char_id):
         paste.update_paste(title=paste_data["title"],
                            text=paste_data["text"],
                            visibility=paste_data["visibility"],
-                           format=paste_data["syntax_highlighting"])
+                           format=paste_data["syntax_highlighting"],
+                           encrypted=paste_data["encrypted"])
         
         return redirect("show_paste", char_id=char_id)
     

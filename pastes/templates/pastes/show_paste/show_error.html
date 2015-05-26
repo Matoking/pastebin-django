@@ -10,14 +10,14 @@
 				<strong>Paste expired</strong><br>
 				The paste you tried to view has expired and can no longer be viewed.
 				{% elif reason == "user_removed" %}
-				<strong>Paste removed</strong>
+				<strong>Paste removed</strong><br>
 				The paste was removed by the uploader.
 				{% elif reason == "admin_removed" %}
-				<strong>Paste removed</strong>
-				The paste was removed by an administrator.
+				<strong>Paste removed</strong><br>
+				The paste was removed by an administrator.<br><br>
 				{% elif reason == "not_found" %}
 				<strong>Paste not found</strong><br>
-				The paste you tried to view does not exist.
+				The paste you tried to view does not exist.<br><br>
 				{% endif %}
 				{% if removal_reason %}
 				The paste was removed for the following reason:<br>

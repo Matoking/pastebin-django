@@ -60,11 +60,15 @@ class EditPasteForm(forms.Form):
                             widget=forms.TextInput(attrs={"placeholder": "Untitled"}))
     visibility = forms.ChoiceField(choices=SubmitPasteForm.VISIBILITY_CHOICES)
     
-    syntax_highlighting = forms.ChoiceField(choices=highlighting.settings.LANGUAGES)
+    syntax_highlighting = forms.ChoiceField(choices=highlighting.settings.LANGUAGES,
+                                            help_text="Languages marked with * are also supported with encrypted pastes.")
     text = forms.CharField(min_length=1,
                            max_length=100000,
                            error_messages={"required": "The paste can't be empty."})
     
+    encrypted = forms.BooleanField(initial=False,
+                                   widget=forms.HiddenInput())
+        
     def clean_title(self):
         """
         Replace an empty title with "Untitled"

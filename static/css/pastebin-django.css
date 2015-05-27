@@ -4,6 +4,11 @@
     resize: none;
 }
 
+.paste-text {
+	font-family: Consolas, "DejaVu Sans Mono", "Lucida Console", Monaco, monospace;
+    font-size: 10pt;
+}
+
 .submit-paste-tabs {
 	margin-bottom: 15px;
 }

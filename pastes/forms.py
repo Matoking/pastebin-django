@@ -37,7 +37,8 @@ class SubmitPasteForm(forms.Form):
                                             help_text="Languages marked with * are also supported with encrypted pastes.")
     
     encrypted = forms.BooleanField(initial=False,
-                                   widget=forms.HiddenInput())
+                                   widget=forms.HiddenInput(),
+                                   required=False)
     
     def clean_title(self):
         """

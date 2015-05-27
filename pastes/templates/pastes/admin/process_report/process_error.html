@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% block content %}
 <h1>Error occurred while processing reports</h1>
-{% if reason == "multiple_pastes" %}
-<p>The selected reports targeted different pastes.</p>
 {% endif %}
+<br>
+<a class="default" href="{% url "admin:pastes_pastereport_changelist" %}">Go back to report list</a>
 {% endblock %}

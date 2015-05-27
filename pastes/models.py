@@ -27,7 +27,7 @@ class PasteManager(models.Manager):
         If count is None, -1 or "all", retrieve all records
         By default only 30 entries are retrieved
         """
-        pastes = Paste.objects.order_by("-submitted")
+        pastes = Paste.objects.filter(removed=Paste.NO_REMOVAL).order_by("-submitted")
                    
         if user != None:
             pastes = pastes.filter(user=user)
@@ -60,6 +60,7 @@ class Paste(models.Model):
     ONE_MONTH = "1month"
     
     # Removal types
+    NO_REMOVAL = 0
     ADMIN_REMOVAL = 1
     USER_REMOVAL = 2
     
@@ -252,7 +253,7 @@ class Paste(models.Model):
         Remove the paste from being viewed
         """
         with transaction.atomic():
-            from favorites.models import Favorite
+            from users.models import Favorite
             
             # Delete favorites linked to this paste first
             Favorite.objects.filter(paste=self).delete()
@@ -269,7 +270,7 @@ class Paste(models.Model):
         Delete the paste completely
         """    
         with transaction.atomic():
-            from favorites.models import Favorite
+            from users.models import Favorite
             
             # Delete favorites linked to this paste first
             Favorite.objects.filter(paste=self).delete()
@@ -322,7 +323,7 @@ class Paste(models.Model):
             return con.incr("paste:%s:hits" % self.id)
         
     def __unicode__(self):
-        return self.title
+        return "%s (%s)" % (self.title, self.char_id)
     
 class PasteContent(models.Model):
     """

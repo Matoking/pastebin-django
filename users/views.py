@@ -89,7 +89,7 @@ def profile(request, username, tab="home", page=1):
     if not profile_user.is_active:
         return render(request, "users/profile/profile_error.html", {"reason": "not_found"}, status=404)
     
-    user_pastes = Paste.objects.filter(user=profile_user)
+    user_pastes = Paste.objects.filter(user=profile_user, removed=Paste.NO_REMOVAL)
     
     # If the user is viewing his own pastes, also include hidden pastes
     if request.user != profile_user:

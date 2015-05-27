@@ -37,7 +37,7 @@ class PasteReportAdmin(admin.ModelAdmin):
         """
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         ct = ContentType.objects.get_for_model(queryset.model)
-        return HttpResponseRedirect(reverse("admin:pastes_pastereport_process_report", kwargs={"reports": ",".join(selected)}))
+        return HttpResponseRedirect(reverse("admin:pastes_pastereport_process_report", kwargs={"report_ids": ",".join(selected)}))
 
 admin.site.register(Paste, PasteAdmin)
 admin.site.register(PasteReport, PasteReportAdmin)

@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+{% load staticfiles %}
+<link href="{% static 'css/pastebin-django.css' %}" rel="stylesheet"></link>
+{% block content %}
+<form action="{% url 'admin:pastes_pastereport_process_report' report_ids %}" method="post">
+	{% csrf_token %}
+	<div class="module aligned">
+		<h2>Reports</h2>
+		{% for report in reports %}
+		<div class="form-row">
+			<b>{{ report.user.username }} -> {{ report.paste }}</b>
+		</div>
+		<div class="form-row">
+			<pre class="paste-text">{{ report.text }}</pre>
+		</div>
+		{% endfor %}
+	</div>
+	<div class="module aligned">
+		<h2>Reported pastes</h2>
+		{% for paste in paste_results %}
+		<div class="form-row">
+			<div>
+				<h1>{{ paste.paste.title }}</h1>
+			</div>
+		</div>
+		<div class="form-row">
+			<div>
+				<pre class="paste-text">{{ paste.paste_text|truncatechars:"2048" }}</pre>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+	<div class="module aligned">
+		<h2>Removal note</h2>
+		<div class="form-row">
+			<div>
+				<label>Reason</label>
+				<input class="vTextField" type="text" name="removal_reason"></input>
+			</div>
+		</div>
+	</div>
+	<div class="submit-row">
+		<input class="default" type="submit" name="ignore" value="Ignore report(s)"></input>
+		<input type="submit" name="remove" value="Remove paste(s)"></input>
+		<input type="submit" name="delete" value="Delete paste(s)"></input>
+	</div>
+</form>
+{% endblock %}

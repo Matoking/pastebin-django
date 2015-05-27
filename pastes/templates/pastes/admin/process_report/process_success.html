@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Report(s) were successfully processed</h1>
+{% if action == "ignore" %}
+<p>The reports were marked as checked and ignored.</p>
+{% elif action == "remove" %}
+<p>The paste was removed.</p>
+{% elif action == "delete" %}
+<p>The paste was deleted permanently.</p>
+{% endif %}
+<br>
+<a class="default" href="{% url "admin:pastes_pastereport_changelist" %}">Go back to report list</a>
+{% endblock %}

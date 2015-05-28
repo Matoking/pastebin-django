@@ -1,7 +1,9 @@
 from django.shortcuts import render
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse, HttpResponseRedirect
 
 from users.models import PastebinUser
 
@@ -170,6 +172,29 @@ def favorites(request, user, args, page=1):
     args["total_pages"] = math.ceil(float(args["total_favorite_count"]) / float(FAVORITES_PER_PAGE))
     
     return render(request, "users/profile/favorites/favorites.html", args)
+
+def remove_favorite(request):
+    """
+    Remove a favorite and redirect the user back to the favorite listing
+    """
+    if "favorite_id" not in request.POST or not int(request.POST["favorite_id"]):
+        return HttpResponse("Favorite ID was not valid.", status=422)
+    
+    if "page" not in request.POST or not int(request.POST["page"]):
+        return HttpResponse("Page was not valid.", status=422)
+    
+    favorite_id = int(request.POST["favorite_id"])
+    page = int(request.POST["page"])
+    
+    favorite = Favorite.objects.get(id=favorite_id)
+    
+    if favorite.user != request.user:
+        return HttpResponse("You can't delete someone else's favorites.", status=422)
+    
+    favorite.delete()
+    
+    return HttpResponseRedirect(reverse("users:favorites", kwargs={"username": request.user.username,
+                                                                   "page": page}))
 
 def change_password(request):
     """

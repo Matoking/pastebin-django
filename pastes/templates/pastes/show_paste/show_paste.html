@@ -63,7 +63,7 @@
 								
 								{% if paste.user_id == user.id or user.is_staff %}
 								<a class="btn btn-primary btn-sm" data="tooltip" title="Edit paste" href="{% url "pastes:edit_paste" paste.char_id %}"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
-								<a class="btn btn-danger btn-sm" href="{% url "pastes:delete_paste" paste.char_id %}"><span class="glyphicon glyphicon-remove"></span> Delete</a>
+								<a class="btn btn-danger btn-sm" href="{% url "pastes:remove_paste" paste.char_id %}"><span class="glyphicon glyphicon-remove"></span> Remove</a>
 								{% endif %}
 							{% endif %}
 						</div>

@@ -81,6 +81,14 @@ class EditPasteForm(forms.Form):
             
         return title
     
+class RemovePasteForm(forms.Form):
+    """
+    Form to remove the paste
+    """
+    removal_reason = forms.CharField(max_length=512,
+                                     required=False,
+                                     help_text="You can provide a reason why you removed the paste.")
+        
 class ReportPasteForm(forms.Form):
     """
     Form to report a paste

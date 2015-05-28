@@ -18,7 +18,7 @@
 				<td>{{ paste.submitted }}</td>
 				<td>
 					<a class="btn btn-primary btn-xs" href="{% url "pastes:edit_paste" paste.char_id %}"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
-					<a class="btn btn-danger btn-xs" href="{% url "pastes:delete_paste" paste.char_id %}"><span class="glyphicon glyphicon-remove"></span> Delete</a>
+					<a class="btn btn-danger btn-xs" href="{% url "pastes:remove_paste" paste.char_id %}"><span class="glyphicon glyphicon-remove"></span> Remove</a>
 				</td>
 			</tr>
 			{% endfor %}

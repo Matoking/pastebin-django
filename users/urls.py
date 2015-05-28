@@ -16,10 +16,12 @@ urlpatterns = patterns('',
     url(r'^(?P<username>\w+)/favorites/(?P<page>\d+)', views.profile, {"tab": "favorites"}, name="favorites"),
     url(r'^(?P<username>\w+)/favorites', views.profile, {"tab": "favorites",
                                                          "page": 1}, name="favorites"),
-    
+                       
     url(r'^(?P<username>\w+)/$', views.profile, {"tab": "home"}, name="profile"),
     
     # User settings
     url(r'^(?P<username>\w+)/change_password', views.settings, {"tab": "change_password"}, name="change_password"),
     url(r'^(?P<username>\w+)/delete_account', views.settings, {"tab": "delete_account"}, name="delete_account"),
+    
+    url(r'^remove_favorite', views.remove_favorite, name="remove_favorite"), 
 )

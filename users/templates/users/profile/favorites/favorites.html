@@ -8,6 +8,7 @@
 			<tr>
 				<th>Title</th>
 				<th>Added</th>
+				<th>Actions</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -15,6 +16,14 @@
 			<tr>
 				<td><a href="{% url "show_paste" favorite.paste.char_id %}">{{ favorite.paste.title|truncatechars:128 }}</a></td>
 				<td>{{ paste.added }}</td>
+				<td>
+					<form action="{% url "users:remove_favorite" %}" method="post">
+						{% csrf_token %}
+						<input type="hidden" name="favorite_id" value="{{ favorite.id }}"></input>
+						<input type="hidden" name="page" value="{{ current_page }}"></input>
+						<button class="btn btn-warning btn-xs" href="{% url "users:remove_favorite" %}"><span class="glyphicon glyphicon-remove"></span> Remove</button>
+					</form>
+				</td>
 			</tr>
 			{% endfor %}
 		</tbody>

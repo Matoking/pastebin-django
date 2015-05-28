@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from pastes import views, admin_views
 
 urlpatterns = patterns('',
-    url(r'^(?P<char_id>\w{8})/delete', views.delete_paste, name="delete_paste"),
+    url(r'^(?P<char_id>\w{8})/remove', views.remove_paste, name="remove_paste"),
     url(r'^(?P<char_id>\w{8})/edit', views.edit_paste, name="edit_paste"),
     url(r'^(?P<char_id>\w{8})/report', views.report_paste, name="report_paste"),
     

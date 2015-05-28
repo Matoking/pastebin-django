@@ -3,7 +3,7 @@ from django.template import Template, Variable, TemplateSyntaxError
 
 from itertools import chain
 
-from pastes.models import Paste
+from pastes.models import Paste, PasteReport
 from comments.models import Comment
 
 import humanfriendly
@@ -134,6 +134,17 @@ class TotalCommentCountNode(template.Node):
     def render(self, context):
         return Comment.objects.all().count()
     
+@register.tag(name="get_unread_paste_report_count")
+def get_unread_paste_report_count(parser, token):
+    return UnreadPasteReportCountNode()
+
+class UnreadPasteReportCountNode(template.Node):
+    """
+    Returns amount of unread paste reports
+    """
+    def render(self, context):
+        return PasteReport.objects.filter(checked=False).count()
+    
 @register.tag(name="get_total_comment_count")
 def get_total_comment_count(parser, token):
     return TotalCommentCountNode()
@@ -172,6 +183,6 @@ def syntax_format_to_text(value):
             if language == value:
                 # Since we converted the language tuple into an iterator,
                 # the human readable string is always the next one
-                return languages.next()
+                return languages.next().replace(" (*)", "")
     else:
         raise TemplateSyntaxError("Given syntax highlighting format wasn't found")

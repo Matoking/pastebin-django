@@ -1,4 +1,5 @@
 {% load lineage %}
+{% load extra_tags %}
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
 	<div class="container">
 	    <div class="navbar-header">
@@ -23,6 +24,7 @@
                     	<li class="divider"></li>
                     	{% if user.is_staff %}
                     	<li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-briefcase"></span> Admin</a></li>
+                    	<li class="{% if request.unread_paste_report_count > 0 %}bg-danger{% endif %}"><a href="{% url 'admin:pastes_pastereport_changelist' %}"><span class="glyphicon glyphicon-inbox"></span> {{ request.unread_paste_report_count }} paste report(s)</a></li>
                     	<li class="divider"></li>
                     	{% endif %}
                         <li><a href="{% url 'users:logout' %}"><span class="glyphicon glyphicon-off"></span> Logout</a></li>

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
-from pastes.forms import SubmitPasteForm, EditPasteForm, ReportPasteForm
+from pastes.forms import SubmitPasteForm, EditPasteForm, RemovePasteForm, ReportPasteForm
 from pastes.models import Paste, PasteReport
 
 from comments.models import Comment
@@ -108,31 +108,37 @@ def edit_paste(request, char_id):
                                                                  
                                                                  "form": edit_form})
         
-def delete_paste(request, char_id):
+def remove_paste(request, char_id):
     """
-    Delete a single paste
+    Remove a single paste
     """
     if not request.user.is_authenticated():
-        return render(request, "pastes/delete_paste/delete_error.html", {"reason": "not_logged_in"})
+        return render(request, "pastes/remove_paste/remove_error.html", {"reason": "not_logged_in"})
     
     try:
         paste = Paste.objects.get(char_id=char_id)
     except ObjectDoesNotExist:
-        return render(request, "pastes/delete_paste/delete_error.html", {"reason": "not_found"})
+        return render(request, "pastes/remove_paste/remove_error.html", {"reason": "not_found"})
     
     # Check that the user can delete the paste
     if paste.user != request.user and not request.user.is_staff:
-        return render(request, "pastes/delete_paste/delete_error.html", {"reason": "not_owner"})
+        return render(request, "pastes/remove_paste/remove_error.html", {"reason": "not_owner"})
     
-    form = VerifyPasswordForm(request.POST or None, user=request.user)
+    verify_form = VerifyPasswordForm(request.POST or None, user=request.user)
+    remove_form = RemovePasteForm(request.POST or None)
     
-    if form.is_valid():
-        paste.delete_paste()
+    if verify_form.is_valid() and remove_form.is_valid():
+        if remove_form.cleaned_data["removal_reason"].strip() == "":
+            paste.remove_paste(type=Paste.USER_REMOVAL)
+        else:
+            paste.remove_paste(type=Paste.USER_REMOVAL, reason=remove_form.cleaned_data["removal_reason"])
         
-        return render(request, "pastes/delete_paste/paste_deleted.html")
+        return render(request, "pastes/remove_paste/paste_removed.html")
     
-    return render(request, "pastes/delete_paste/delete_paste.html", {"paste": paste,
-                                                                     "form": form})
+    return render(request, "pastes/remove_paste/remove_paste.html", {"paste": paste,
+                                                                     
+                                                                     "verify_form": verify_form,
+                                                                     "remove_form": remove_form})
     
 def report_paste(request, char_id):
     """

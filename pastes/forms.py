@@ -68,7 +68,8 @@ class EditPasteForm(forms.Form):
                            error_messages={"required": "The paste can't be empty."})
     
     encrypted = forms.BooleanField(initial=False,
-                                   widget=forms.HiddenInput())
+                                   widget=forms.HiddenInput(),
+                                   required=False)
         
     def clean_title(self):
         """

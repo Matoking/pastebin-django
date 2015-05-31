@@ -19,6 +19,20 @@ class PasteTests(TestCase):
         self.assertContains(response, "Paste test title")
         self.assertContains(response, "This is a test.")
         
+    def test_upload_encrypted_paste(self):
+        """
+        Upload an encrypted paste and check that it is shown correctly in the view
+        """
+        response = self.client.post(reverse("home:home"), {"title": "Encrypted paste",
+                                                           "text": "This is not really encrypted",
+                                                           "syntax_highlighting": "text",
+                                                           "expiration": "never",
+                                                           "visibility": "public",
+                                                           "encrypted": True},
+                                    follow=True)
+        
+        self.assertContains(response, "This paste is encrypted")
+        
     def test_cant_upload_empty_paste(self):
         """
         Check that an empty paste can't be uploaded

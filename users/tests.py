@@ -1,5 +1,8 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
+
+from pastes.models import Paste
 
 from django.utils.html import escape
 
@@ -87,6 +90,36 @@ class UserTests(TestCase):
         
         self.assertContains(response, "Remove")
         self.assertContains(response, "Edit")
+        
+    def test_user_can_edit_paste(self):
+        """
+        Upload a paste while logged in and edit it
+        """
+        create_test_account(self)
+        login_test_account(self)
+        
+        test_user = User.objects.get(username="TestUser")
+        
+        paste = Paste()
+        char_id = paste.add_paste(user=test_user,
+                                  text="This is a test paste number one.",
+                                  title="Tested paste")
+        
+        self.assertEquals(len(char_id), 8)
+        
+        # Edit the paste
+        response = self.client.post(reverse("pastes:edit_paste", kwargs={"char_id": char_id}),
+                                                                 {"title": "New paste title",
+                                                                  "text": "This is the new text",
+                                                                  "syntax_highlighting": "text",
+                                                                  "expiration": "never",
+                                                                  "visibility": "public"},
+                                    follow=True)
+        
+        self.assertContains(response, "New paste title")
+        self.assertContains(response, "This is the new text")
+        
+        self.assertNotContains(response, "This is a test paste number one.")
         
     def test_user_uploaded_paste_displayed_in_profile(self):
         """

@@ -148,6 +148,12 @@ def pastes(request, user, args, page=1):
     Show all of user's pastes
     """
     PASTES_PER_PAGE = 15
+    
+    args["total_pages"] = math.ceil(float(args["total_paste_count"]) / float(PASTES_PER_PAGE))
+    
+    if page > args["total_pages"]:
+        page = args["total_pages"]
+    
     offset = (page-1) * PASTES_PER_PAGE
     
     if request.user == user:
@@ -156,7 +162,6 @@ def pastes(request, user, args, page=1):
         args["pastes"] = Paste.objects.get_pastes(user, count=PASTES_PER_PAGE, include_hidden=True, offset=offset)
         
     args["pages"] = Paginator.get_pages(page, PASTES_PER_PAGE, args["total_paste_count"])
-    args["total_pages"] = math.ceil(float(args["total_paste_count"]) / float(PASTES_PER_PAGE))
     
     return render(request, "users/profile/pastes/pastes.html", args)
     
@@ -165,11 +170,16 @@ def favorites(request, user, args, page=1):
     Show all of user's favorites
     """
     FAVORITES_PER_PAGE = 15
+    
+    args["total_pages"] = math.ceil(float(args["total_favorite_count"]) / float(FAVORITES_PER_PAGE))
+    
+    if page > args["total_pages"]:
+        page = args["total_pages"]
+        
     offset = (page-1) * FAVORITES_PER_PAGE
     
     args["favorites"] = Favorite.objects.filter(user=user).prefetch_related("paste")[offset:FAVORITES_PER_PAGE]
     args["pages"] = Paginator.get_pages(page, FAVORITES_PER_PAGE, args["total_favorite_count"])
-    args["total_pages"] = math.ceil(float(args["total_favorite_count"]) / float(FAVORITES_PER_PAGE))
     
     return render(request, "users/profile/favorites/favorites.html", args)
 

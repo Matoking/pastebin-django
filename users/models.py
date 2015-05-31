@@ -16,6 +16,7 @@ class Favorite(models.Model):
     added = models.DateTimeField(auto_now_add=True)
     
 class PastebinUser(object):
+    @staticmethod
     def delete_user(user):
         """
         Deletes an user as well as all of his pastes
@@ -27,6 +28,6 @@ class PastebinUser(object):
             
             # Django recommends setting User's is_active property to False instead of
             # deleting it entirely, as it may break foreign keys
-            user.is_active = True
+            user.is_active = False
             
             user.save()

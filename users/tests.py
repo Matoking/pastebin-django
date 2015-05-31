@@ -85,7 +85,8 @@ class UserTests(TestCase):
                                                             "visibility": "public"},
                                     follow=True)
         
-        self.assertContains(response, "Delete paste")
+        self.assertContains(response, "Remove")
+        self.assertContains(response, "Edit")
         
     def test_user_uploaded_paste_displayed_in_profile(self):
         """

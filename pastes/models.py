@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 
 from django.core.cache import cache
 from django_redis import get_redis_connection
+from django.utils import timezone
 
 from sql import cursor
 
@@ -33,7 +34,7 @@ class PasteManager(models.Manager):
             pastes = pastes.filter(user=user)
             
         if not include_expired:
-            current_datetime = datetime.datetime.now()
+            current_datetime = timezone.now()
             pastes = pastes.filter(Q(expiration_datetime__isnull=True) | Q(expiration_datetime__lte=current_datetime))
             
         if not include_hidden:
@@ -93,7 +94,7 @@ class Paste(models.Model):
         Take the current datetime and move it forward by the given timedelta,
         giving us the paste's expiration date
         """
-        exp_datetime = datetime.datetime.now()
+        exp_datetime = timezone.now()
         
         if expiration == self.FIFTEEN_MINUTES:
             exp_datetime += datetime.timedelta(minutes=15)
@@ -149,7 +150,7 @@ class Paste(models.Model):
         if self.expiration_datetime == None:
             return False
         
-        current_datetime = datetime.datetime.now()
+        current_datetime = timezone.now()
         
         if self.expiration_datetime > current_datetime:
             return True
@@ -346,8 +347,10 @@ class PasteContent(models.Model):
         elif format == None:
             format = "none"
         
-        paste_content = PasteContent(hash=hash, format=format, text=text)
-        paste_content.save()
+        # Paste text may already exist
+        if not PasteContent.objects.filter(hash=hash, format=format).exists():
+            paste_content = PasteContent(hash=hash, format=format, text=text)
+            paste_content.save()
         
 class PasteReport(models.Model):
     """
@@ -372,7 +375,7 @@ class LatestPastes(object):
                    ORDER BY submitted DESC
                    LIMIT %s"""
                    
-        current_datetime = datetime.datetime.now()
+        current_datetime = timezone.now()
                    
         results = cursor.query_to_list(query, [current_datetime, limit])
         

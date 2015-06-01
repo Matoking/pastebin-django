@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 from pastes.forms import SubmitPasteForm, EditPasteForm, RemovePasteForm, ReportPasteForm
-from pastes.models import Paste, PasteReport
+from pastes.models import Paste, PasteReport, PasteVersion
 
 from comments.models import Comment
 
@@ -12,9 +12,12 @@ from users.forms import VerifyPasswordForm
 
 from ipware.ip import get_real_ip
 
+from pastebin.util import Paginator
+
+import math
 import json
     
-def show_paste(request, char_id, raw=False, download=False):
+def show_paste(request, char_id, raw=False, download=False, version=None):
     """
     Show the paste, possibly as raw text or as a download
     """
@@ -34,13 +37,15 @@ def show_paste(request, char_id, raw=False, download=False):
             return render(request, "pastes/show_paste/show_error.html", {"reason": "admin_removed",
                                                                          "removal_reason": paste.removal_reason}, status=404)
             
+    if version == None:
+        version = paste.version
         
     if raw:
-        text = paste.get_text(formatted=False)
+        text = paste.get_text(formatted=False, version=version)
         response = HttpResponse(text, content_type='text/plain')
         return response
     elif download:
-        text = paste.get_text(formatted=False)
+        text = paste.get_text(formatted=False, version=version)
         response = HttpResponse(text, content_type='application/octet-stream')
         response["Content-Disposition"] = 'attachment; filename="%s.txt"' % char_id
         return response
@@ -60,12 +65,61 @@ def show_paste(request, char_id, raw=False, download=False):
             paste_hits = paste.get_hit_count()
             
         comment_count = Comment.objects.filter(paste=paste).count()
+        
+        paste_text = paste.get_text(version=version)
             
         return render(request, "pastes/show_paste/show_paste.html", {"paste": paste,
+                                                                     "paste_text": paste_text,
+                                                                     
                                                                      "paste_favorited": paste_favorited,
                                                                      "paste_hits": paste_hits,
                                                                      
                                                                      "comment_count": comment_count})
+        
+def paste_history(request, char_id, page=1):
+    """
+    Show the earlier versions of the paste
+    """
+    VERSIONS_PER_PAGE = 15
+    
+    try:
+        paste = Paste.objects.get(char_id=char_id)
+    except ObjectDoesNotExist:
+        return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)
+    
+    if paste.is_expired():
+        return render(request, "pastes/show_paste/show_error.html", {"reason": "expired"}, status=404)
+    if paste.is_removed():
+        if paste.removed == Paste.USER_REMOVAL:
+            return render(request, "pastes/show_paste/show_error.html", {"reason": "user_removed",
+                                                                         "removal_reason": paste.removal_reason}, status=404)
+        elif paste.removed == Paste.ADMIN_REMOVAL:
+            return render(request, "pastes/show_paste/show_error.html", {"reason": "admin_removed",
+                                                                         "removal_reason": paste.removal_reason}, status=404)
+    
+    total_version_count = PasteVersion.objects.filter(paste=paste).count()
+    total_pages = math.ceil(float(total_version_count) / float(VERSIONS_PER_PAGE))
+    
+    if page > total_pages:
+        page = total_pages
+        
+    offset = (page-1) * VERSIONS_PER_PAGE
+    
+    start = offset
+    end = offset + VERSIONS_PER_PAGE
+    
+    history = PasteVersion.objects.filter(paste=paste)[start:end]
+    pages = Paginator.get_pages(page, VERSIONS_PER_PAGE, total_version_count)
+    
+    return render(request, "pastes/paste_history/paste_history.html", {"paste": paste,
+                                                                       "history": history,
+                                                                       
+                                                                       "current_page": page,
+                                                                       
+                                                                       "total_version_count": total_version_count,
+                                                                       
+                                                                       "total_pages": total_pages,
+                                                                       "pages": pages})
         
 def edit_paste(request, char_id):
     """
@@ -97,7 +151,8 @@ def edit_paste(request, char_id):
                            text=paste_data["text"],
                            visibility=paste_data["visibility"],
                            format=paste_data["syntax_highlighting"],
-                           encrypted=paste_data["encrypted"])
+                           encrypted=paste_data["encrypted"],
+                           note=paste_data["note"])
         
         return redirect("show_paste", char_id=char_id)
     

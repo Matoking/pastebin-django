@@ -44,6 +44,9 @@
 							{% endif %}
 						</div>
 						<div class="col-md-3">
+							{% if paste.version > 1 %}
+							<a class="btn btn-primary btn-sm" href="{% url "pastes:paste_history" paste.char_id %}"><span class="glyphicon glyphicon-th-list"></span> History</a>
+							{% endif %}
 							<a class="btn btn-primary btn-sm" href="{% url "raw_paste" paste.char_id %}"><span class="glyphicon glyphicon-font"></span> Raw</a>
 							<a class="btn btn-primary btn-sm" href="{% url "download_paste" paste.char_id %}"><span class="glyphicon glyphicon-download"></span> Download</a>
 						</div>
@@ -73,10 +76,10 @@
 			<hr>
 			{% if not paste.encrypted %}
 			{# PASTE NOT ENCRYPTED #}
-			{{ paste.get_text|safe }}
+			{{ paste_text|safe }}
 			{% else %}
 			{# PASTE ENCRYPTED #}
-			<pre id="encrypted-text" style="display: none;"><code>{{ paste.get_text|safe }}</code></pre>
+			<pre id="encrypted-text" style="display: none;"><code>{{ paste_text|safe }}</code></pre>
 			<div id="paste-decrypt-form" class="form-horizontal">
 					<p class="col-sm-offset-2">This paste is encrypted and requires a password in order to be displayed.</p>
 					<div class="form-group">

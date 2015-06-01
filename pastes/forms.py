@@ -56,6 +56,9 @@ class EditPasteForm(forms.Form):
     """
     Form to edit the paste
     """
+    note = forms.CharField(max_length=1024,
+                           required=False,
+                           help_text="Optional note describing what was changed in the paste")
     title = forms.CharField(max_length=128,
                             required=False,
                             widget=forms.TextInput(attrs={"placeholder": "Untitled"}))

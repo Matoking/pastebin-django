@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="page-header">
+				<h1>Paste history: {{ paste.title }}</h1>
+			</div>
+			{% if total_version_count > 0 %}
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Title</th>
+						<th>Note</th>
+						<th>Updated</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for version in history %}
+					<tr>
+						<td><a href="{% url "show_paste" paste.char_id version.version %}">{{ version.title|truncatechars:64 }}</a></td>
+						<td>{% if version.note %}{{ version.note }}{% else %}<i>No note provided</i>{% endif %}</td>
+						<td>{{ version.submitted|naturaltime }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			{% include "pagination.html" with destination="pastes:history" url_arg=paste.char_id %}
+			{% else %}
+			<div class="alert alert-warning">
+				<strong>No paste history</strong><br>
+				This paste doesn't have any paste version entries. This shouldn't happen.
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endblock %}

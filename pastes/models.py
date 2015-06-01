@@ -40,7 +40,10 @@ class PasteManager(models.Manager):
         if not include_hidden:
             pastes = pastes.filter(hidden=False)
             
-        pastes = pastes[offset:count]
+        start = offset
+        end = offset + count
+        
+        pastes = pastes[start:end]
         
         return pastes
 
@@ -67,6 +70,9 @@ class Paste(models.Model):
     
     char_id = models.CharField(max_length=8)
     user = models.ForeignKey(User, null=True, blank=True)
+    
+    # Version is incremented by one with every paste update
+    version = models.IntegerField(default=1)
     
     title = models.CharField(max_length=128)
     format = models.CharField(max_length=32)
@@ -113,30 +119,42 @@ class Paste(models.Model):
         """ Get a random 8 character string for the char id """
         return ''.join(random.SystemRandom().choice(string.uppercase + string.lowercase + string.digits) for _ in xrange(8))
         
-    def get_text(self, formatted=True):
+    def get_text(self, formatted=True, version=None):
         """
         Get paste's text
         
         If formatted is True, text is returned in its HTML formatted form
         """
-        if formatted and not self.encrypted:
-            cache_result = cache.get("paste:%s:formatted_text" % self.id)
-            
-            if cache_result != None:
-                return cache_result
-            
-            paste_content = PasteContent.objects.get(hash=self.hash, format=self.format)
-            
-            cache.set("paste:%s:formatted_text" % self.id, paste_content.text)
+        hash = None
+        format = None
+        
+        if version == None:
+            hash = self.hash
+            format = self.format
         else:
-            cache_result = cache.get("paste:%s:text" % self.id)
+            paste_version = PasteVersion.objects.get(paste=self, version=version)
+            
+            hash = paste_version.hash
+            format = paste_version.format
+        
+        if formatted and not self.encrypted:
+            cache_result = cache.get("paste:%s:%s:formatted_text" % (hash, format))
             
             if cache_result != None:
                 return cache_result
             
-            paste_content = PasteContent.objects.get(hash=self.hash, format="none")
+            paste_content = PasteContent.objects.get(hash=hash, format=format)
             
-            cache.set("paste:%s:text" % self.id, paste_content.text)
+            cache.set("paste:%s:%s:formatted_text" % (hash, format), paste_content.text)
+        else:
+            cache_result = cache.get("paste:%s:text" % hash)
+            
+            if cache_result != None:
+                return cache_result
+            
+            paste_content = PasteContent.objects.get(hash=hash, format="none")
+            
+            cache.set("paste:%s:text" % hash, paste_content.text)
        
         return paste_content.text
     
@@ -213,10 +231,18 @@ class Paste(models.Model):
             
             if not encrypted:
                 formatted.add_paste_text(text, format)
+                
+            first_version = PasteVersion(paste=self,
+                                         version=1,
+                                         note="Uploaded",
+                                         title=self.title,
+                                         hash=self.hash,
+                                         format=self.format)
+            first_version.save()
         
         return self.char_id
     
-    def update_paste(self, text="", title="", visibility=None, format="text", encrypted=False):
+    def update_paste(self, text="", title="", visibility=None, format="text", encrypted=False, note=""):
         """
         Change the paste text on an existing paste
         """
@@ -229,6 +255,7 @@ class Paste(models.Model):
         self.title = title
         self.format = format
             
+        self.version += 1
         self.hash = hashlib.sha256(text.encode('utf-8')).hexdigest()
             
         self.encrypted = encrypted
@@ -248,6 +275,14 @@ class Paste(models.Model):
             # Clear cache
             cache.delete("paste:%s:formatted_text" % self.id)
             cache.delete("paste:%s:text" % self.id)
+            
+            new_version = PasteVersion(paste=self,
+                                       version=self.version,
+                                       note=note,
+                                       title=self.title,
+                                       hash=self.hash,
+                                       format=self.format)
+            new_version.save()
     
     def remove_paste(self, type=ADMIN_REMOVAL, reason=""):
         """
@@ -325,6 +360,22 @@ class Paste(models.Model):
         
     def __unicode__(self):
         return "%s (%s)" % (self.title, self.char_id)
+    
+class PasteVersion(models.Model):
+    """
+    A version entry of a paste
+    """
+    paste = models.ForeignKey(Paste)
+    version = models.IntegerField()
+    
+    note = models.CharField(max_length=1024,
+                            default="")
+    
+    title = models.CharField(max_length=128)
+    hash = models.CharField(max_length=64)
+    format = models.CharField(max_length=64)
+    
+    submitted = models.DateTimeField(auto_now_add=True)
     
 class PasteContent(models.Model):
     """

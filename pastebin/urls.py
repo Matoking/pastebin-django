@@ -20,6 +20,8 @@ urlpatterns = patterns('',
     url(r'^latest_pastes/(?P<page>\d+)', home_views.latest_pastes, name="latest_pastes"),
     url(r'^latest_pastes/', home_views.latest_pastes, name="latest_pastes"),
     
+    url(r'^random/', home_views.random_paste, name="random_paste"),
+    
     url(r'^pastes/', include("pastes.urls", namespace="pastes")),
     url(r'^users/', include("users.urls", namespace="users")),
     url(r'^comments/', include("comments.urls", namespace="comments")),

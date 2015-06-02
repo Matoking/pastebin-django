@@ -24,6 +24,11 @@ def show_paste(request, char_id, raw=False, download=False, version=None):
     # If paste has expired, show the ordinary "paste not found" page
     try:
         paste = Paste.objects.get(char_id=char_id)
+        
+        if version == None:
+            version = paste.version
+            
+        paste_version = PasteVersion.objects.get(paste=paste, version=version)
     except ObjectDoesNotExist:
         return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)
     
@@ -36,9 +41,6 @@ def show_paste(request, char_id, raw=False, download=False, version=None):
         elif paste.removed == Paste.ADMIN_REMOVAL:
             return render(request, "pastes/show_paste/show_error.html", {"reason": "admin_removed",
                                                                          "removal_reason": paste.removal_reason}, status=404)
-            
-    if version == None:
-        version = paste.version
         
     if raw:
         text = paste.get_text(formatted=False, version=version)
@@ -69,6 +71,7 @@ def show_paste(request, char_id, raw=False, download=False, version=None):
         paste_text = paste.get_text(version=version)
             
         return render(request, "pastes/show_paste/show_paste.html", {"paste": paste,
+                                                                     "paste_version": paste_version,
                                                                      "paste_text": paste_text,
                                                                      
                                                                      "paste_favorited": paste_favorited,

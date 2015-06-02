@@ -1,4 +1,7 @@
 from django.shortcuts import render, redirect
+from django.db.models import Q
+
+from django.utils import timezone
 
 from pastes.forms import SubmitPasteForm
 from pastes.models import Paste, LatestPastes
@@ -51,8 +54,10 @@ def latest_pastes(request, page=1):
     
     page = int(page)
     
+    current_datetime = timezone.now()
+    
     offset = (page-1) * PASTES_PER_PAGE
-    total_paste_count = Paste.objects.filter(hidden=False).count()    
+    total_paste_count = Paste.objects.filter(hidden=False).filter(Q(expiration_datetime__isnull=True) | Q(expiration_datetime__lte=current_datetime)).count()    
     
     pastes = Paste.objects.get_pastes(count=PASTES_PER_PAGE, offset=offset, include_hidden=False)
     pages = Paginator.get_pages(page, PASTES_PER_PAGE, total_paste_count)
@@ -63,3 +68,14 @@ def latest_pastes(request, page=1):
                                                                 "pages": pages,
                                                                 "total_pages": total_pages,
                                                                 "total_paste_count": total_paste_count})
+    
+def random_paste(request):
+    """
+    Redirect to a random paste
+    """
+    char_id = Paste.get_random_char_id()
+    
+    if char_id:
+        return redirect("show_paste", char_id=char_id)
+    else:
+        return redirect("home:home")

@@ -92,6 +92,7 @@ class Paste(models.Model):
     deleted = models.BooleanField(default=False)
     
     submitted = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
     
     objects = PasteManager()
     
@@ -115,8 +116,43 @@ class Paste(models.Model):
             
         return exp_datetime
     
-    def get_random_char_id(self):
-        """ Get a random 8 character string for the char id """
+    @staticmethod
+    def get_random_char_id():
+        """
+        Get a random char ID representing a public paste
+        """
+        con = get_redis_connection("persistent")
+        
+        result = con.srandmember("public_pastes")
+        
+        if result == None:
+            # We don't have public pastes in Redis, add them
+            pastes = Paste.objects.filter(removed=Paste.NO_REMOVAL,
+                                          deleted=False,
+                                          hidden=False,
+                                          encrypted=False,
+                                          expiration_datetime=None).only("char_id").values_list()
+            
+            char_ids = []
+            
+            for paste in pastes:
+                char_ids.append(paste[1])
+                print paste[1]
+                
+            # Add all the public pastes
+            if len(char_ids) > 0:
+                con.sadd("public_pastes", *char_ids)
+            
+                return random.choice(char_ids)
+            else:
+                return None
+        else:
+            return result
+    
+    def generate_random_char_id(self):
+        """ 
+        Generate a random 8 character string for the char id 
+        """
         return ''.join(random.SystemRandom().choice(string.uppercase + string.lowercase + string.digits) for _ in xrange(8))
         
     def get_text(self, formatted=True, version=None):
@@ -191,7 +227,7 @@ class Paste(models.Model):
         
         Returns the paste's char ID if the paste was successfully added, False otherwise
         """
-        self.char_id = self.get_random_char_id()
+        self.char_id = self.generate_random_char_id()
         self.hash = hashlib.sha256(text.encode('utf-8')).hexdigest()
         
         self.title = title
@@ -239,6 +275,11 @@ class Paste(models.Model):
                                          hash=self.hash,
                                          format=self.format)
             first_version.save()
+            
+            if not self.encrypted and not self.hidden and self.expiration_datetime == None: 
+                con = get_redis_connection("persistent")
+                
+                con.sadd("public_pastes", self.char_id)
         
         return self.char_id
     
@@ -299,6 +340,10 @@ class Paste(models.Model):
         
             self.save()
             
+            con = get_redis_connection("persistent")
+            
+            con.srem("public_pastes", self.char_id)
+            
         return True
     
     def delete_paste(self, type=ADMIN_REMOVAL, reason=""):
@@ -325,6 +370,10 @@ class Paste(models.Model):
             self.hash = "N/A"
             
             self.save()
+            
+            con = get_redis_connection("persistent")
+            
+            con.srem("public_pastes", self.char_id)
             
         return True
     

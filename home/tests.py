@@ -1,7 +1,8 @@
-from django.test import TestCase
+from pastebin.testcase import CacheAwareTestCase
+
 from django.core.urlresolvers import reverse
 
-class LatestPastesTests(TestCase):
+class LatestPastesTests(CacheAwareTestCase):
     def test_latest_pastes_empty(self):
         """
         Test that latest pastes shows the "no pastes uploaded" message when no pastes
@@ -48,3 +49,27 @@ class LatestPastesTests(TestCase):
         response = self.client.get(reverse("latest_pastes"))
         
         self.assertContains(response, "No pastes uploaded")
+        
+    def test_random_with_no_pastes_redirects_to_home(self):
+        """
+        Try going to a random paste when no pastes have been uploaded
+        User should be redirect to home.
+        """
+        response = self.client.post(reverse("random_paste"), follow=True)
+        
+        self.assertContains(response, "Upload a new paste")
+        
+    def test_random_with_paste(self):
+        """
+        Upload one paste and go to a random paste
+        """
+        self.client.post(reverse("home:home"), { "title": "Test paste",
+                                                 "text": "This is a test.",
+                                                 "syntax_highlighting": "text",
+                                                 "expiration": "never",
+                                                 "visibility": "public"},
+                                                follow=True)
+        
+        response = self.client.post(reverse("random_paste"), follow=True)
+        
+        self.assertContains(response, "Test paste")

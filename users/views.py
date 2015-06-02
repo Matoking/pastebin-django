@@ -153,6 +153,9 @@ def pastes(request, user, args, page=1):
     
     if page > args["total_pages"]:
         page = args["total_pages"]
+        
+    if page == 0:
+        page = 1
     
     offset = (page-1) * PASTES_PER_PAGE
     
@@ -176,9 +179,13 @@ def favorites(request, user, args, page=1):
     if page > args["total_pages"]:
         page = args["total_pages"]
         
-    offset = (page-1) * FAVORITES_PER_PAGE
+    if page == 0:
+        page = 1
+        
+    start = (page-1) * FAVORITES_PER_PAGE
+    end = start + FAVORITES_PER_PAGE
     
-    args["favorites"] = Favorite.objects.filter(user=user).prefetch_related("paste")[offset:FAVORITES_PER_PAGE]
+    args["favorites"] = Favorite.objects.filter(user=user).prefetch_related("paste")[start:end]
     args["pages"] = Paginator.get_pages(page, FAVORITES_PER_PAGE, args["total_favorite_count"])
     
     return render(request, "users/profile/favorites/favorites.html", args)

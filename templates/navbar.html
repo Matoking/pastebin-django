@@ -11,6 +11,7 @@
 		        <li class="{% ancestor "latest_pastes" %}"><a href="{% url 'latest_pastes' %}">Latest pastes</a>
 		    </ul>
             <ul class="nav navbar-nav navbar-right">
+            	<li><a href="{% url 'random_paste' %}">Random</a></li>
                 {% if user.is_authenticated %}
                 <li class="dropdown {% ancestor "users:profile" user.get_username %}">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown"><b><span class="glyphicon glyphicon-user"></span> {{ user.get_username }}</b> <b class="caret"></b></a>

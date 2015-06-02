@@ -121,6 +121,93 @@ class UserTests(TestCase):
         
         self.assertNotContains(response, "This is a test paste number one.")
         
+    def test_paste_has_correct_history(self):
+        """
+        Upload a paste, update it and check that the paste history is displayed correctly
+        """
+        create_test_account(self)
+        login_test_account(self)
+        
+        test_user = User.objects.get(username="TestUser")
+        
+        paste = Paste()
+        char_id = paste.add_paste(user=test_user,
+                                  text="This is a test paste number one.",
+                                  title="Tested paste")
+        
+        self.client.post(reverse("pastes:edit_paste", kwargs={"char_id": char_id}),
+                                                             {"title": "New paste title",
+                                                              "text": "This is the new text",
+                                                              "syntax_highlighting": "text",
+                                                              "expiration": "never",
+                                                              "visibility": "public",
+                                                              "note": "Testing update note"},
+                                follow=True)
+        
+        response = self.client.get(reverse("pastes:paste_history", kwargs={"char_id": char_id}))
+        
+        self.assertContains(response, "Testing update note")
+        
+    def test_paste_versions_can_be_viewed(self):
+        """
+        Upload a paste, update it twice and check that all versions can be viewed individually
+        """
+        ""
+        create_test_account(self)
+        login_test_account(self)
+        
+        test_user = User.objects.get(username="TestUser")
+        
+        paste = Paste()
+        char_id = paste.add_paste(user=test_user,
+                                  text="This is the version one.",
+                                  title="Tested paste")
+        
+        self.client.post(reverse("pastes:edit_paste", kwargs={"char_id": char_id}),
+                                                             {"title": "Second version title",
+                                                              "text": "This is the version two",
+                                                              "syntax_highlighting": "python",
+                                                              "expiration": "never",
+                                                              "visibility": "public",
+                                                              "note": "Update two"},
+                                follow=True)
+        
+        self.client.post(reverse("pastes:edit_paste", kwargs={"char_id": char_id}),
+                                                             {"title": "Third version title",
+                                                              "text": "This is the version three",
+                                                              "syntax_highlighting": "php",
+                                                              "expiration": "never",
+                                                              "visibility": "public",
+                                                              "note": "Testing update note"},
+                                follow=True)
+        
+        # Test that the normal link has the newest version
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": char_id}))
+        
+        self.assertContains(response, "PHP")
+        self.assertContains(response, "Third version title")
+        
+        # Test the first version
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": char_id,
+                                                                 "version": 1}))
+        
+        self.assertContains(response, "Text only")
+        self.assertContains(response, "Tested paste")
+        
+        # Test the second version
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": char_id,
+                                                                 "version": 2}))
+        
+        self.assertContains(response, "Python")
+        self.assertContains(response, "Second version title")
+        
+        # Test the third version
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": char_id,
+                                                                 "version": 3}))
+        
+        self.assertContains(response, "PHP")
+        self.assertContains(response, "Third version title")
+        
     def test_user_uploaded_paste_displayed_in_profile(self):
         """
         Upload a paste as an user and check that it is displayed in the user's profile

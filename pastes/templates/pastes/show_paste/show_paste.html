@@ -29,14 +29,17 @@
 			<br>
 			<div class="panel panel-info">
 				<div class="panel-heading">
-					<h1 class="panel-title">{% if paste.encrypted %}<span class="glyphicon glyphicon-lock"></span> {% endif %}{{ paste.title }}</h1>
+					<h1 class="panel-title">{% if paste.encrypted %}<span class="glyphicon glyphicon-lock"></span> {% endif %}{{ paste_version.title }}</h1>
 				</div>
 				<div class="panel-body">
 					<div class="container">
 						<div class="col-md-3">
 							<p><b>SUBMITTED BY:</b> {% if paste.username %}<b><a href="{% url "users:profile" paste.username %}">{{ paste.username }}</a></b>{% else %}Guest{% endif %}</p>
 							<p><b>DATE:</b> {{ paste.submitted }}</p>
-							<p><b>FORMAT:</b> {{ paste.format|syntax_format_to_text }}</p>
+							{% if paste.version > 1 %}
+							<p><b>UPDATED: {{ paste.updated }}</b></p>
+							{% endif %}
+							<p><b>FORMAT:</b> {{ paste_version.format|syntax_format_to_text }}</p>
 							{% if paste.expiration_date %}
 								{% with timesince_seconds=paste.expiration_date|timeuntil_in_seconds %}
 									<p><b style="color: red;">EXPIRES IN:</b> {% seconds_to_str timesince_seconds %}</p>

@@ -7,28 +7,34 @@ from django.core.urlresolvers import reverse
 
 import json
 
-def create_test_account(test_case):
+def create_test_account(test_case, username="TestUser"):
     """
     Creates user TestUser
     """
-    test_case.client.post(reverse("users:register"), {"username": "TestUser",
+    test_case.client.post(reverse("users:register"), {"username": username,
                                                       "password": "password",
                                                       "confirm_password": "password"})
     
-def login_test_account(test_case):
+def login_test_account(test_case, username="TestUser"):
     """
     Logs in as TestUser. User must be created before logging in
     """
-    test_case.client.post(reverse("users:login"), {"username": "TestUser",
+    test_case.client.post(reverse("users:login"), {"username": username,
                                                    "password": "password"})
     
-def upload_test_paste(test_case):
+def logout(test_case):
+    """
+    Logout from the current user
+    """
+    test_case.client.post(reverse("users:logout"))
+    
+def upload_test_paste(test_case, username="TestUser"):
     """
     Upload a test paste
     """
     paste = Paste()
     
-    test_user = User.objects.get(username="TestUser")
+    test_user = User.objects.get(username=username)
     
     return paste.add_paste(user=test_user,
                            text="This is the test paste.",
@@ -118,3 +124,58 @@ class CommentTests(CacheAwareTestCase):
         
         self.assertEqual(response["status"], "success")
         self.assertEqual(len(response["data"]["comments"]), 0)
+        
+    def test_user_cant_delete_other_comment(self):
+        """
+        Post a comment and try deleting it with an account other than the one that posted it
+        """
+        create_test_account(self)
+        login_test_account(self)
+        char_id = upload_test_paste(self)
+        
+        response = self.client.post(reverse("comments:add_comment"), {"char_id": char_id,
+                                                                      "text": "This is a test comment"})
+        response = json.loads(response.content)
+        
+        self.assertEqual(response["status"], "success")
+        
+        comment_id = response["data"]["comments"][0]["id"]
+        
+        logout(self)
+        create_test_account(self, "TestUser2")
+        login_test_account(self, "TestUser2")
+        
+        response = self.client.post(reverse("comments:delete_comment"), {"char_id": char_id,
+                                                                         "id": comment_id,
+                                                                         "page": 0})
+        response = json.loads(response.content)
+        
+        self.assertEqual(response["status"], "fail")
+        
+    def test_user_cant_edit_other_comment(self):
+        """
+        Post a comment and try editing it with an account other than the one that posted it
+        """
+        create_test_account(self)
+        login_test_account(self)
+        char_id = upload_test_paste(self)
+        
+        response = self.client.post(reverse("comments:add_comment"), {"char_id": char_id,
+                                                                      "text": "This is a test comment"})
+        response = json.loads(response.content)
+        
+        self.assertEqual(response["status"], "success")
+        
+        comment_id = response["data"]["comments"][0]["id"]
+        
+        logout(self)
+        create_test_account(self, "TestUser2")
+        login_test_account(self, "TestUser2")
+        
+        response = self.client.post(reverse("comments:edit_comment"), {"char_id": char_id,
+                                                                       "text": "Haha I'll edit you",
+                                                                       "id": comment_id,
+                                                                       "page": 0})
+        response = json.loads(response.content)
+        
+        self.assertEqual(response["status"], "fail")

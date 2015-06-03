@@ -1,5 +1,6 @@
 from django import template
 from django.template import Template, Variable, TemplateSyntaxError
+from django.utils import timezone
 
 from itertools import chain
 
@@ -154,7 +155,7 @@ def timesince_in_seconds(value):
     """
     Converts a provided datetime to amount of seconds that have passed
     """
-    current_datetime = datetime.datetime.now()
+    current_datetime = timezone.now()
     
     difference = current_datetime - value
     
@@ -165,7 +166,7 @@ def timeuntil_in_seconds(value):
     """
     Returns the time until a given datetime in seconds
     """
-    current_datetime = datetime.datetime.now()
+    current_datetime = timezone.now()
     
     difference = value - current_datetime
     

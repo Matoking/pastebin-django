@@ -2,6 +2,8 @@ from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.utils.html import escape
 
+from freezegun import freeze_time
+
 from pastes.models import Paste
 
 class PasteTests(TestCase):
@@ -48,6 +50,26 @@ class PasteTests(TestCase):
         self.assertContains(response, "Upload a new paste")
         self.assertContains(response, escape("The paste can't be empty."))
         
+    def test_expiring_paste_expires_correctly(self):
+        """
+        Upload a paste with an expiration time
+        """
+        with freeze_time("2015-01-01 12:00:00"):
+            paste = Paste()
+            char_id = paste.add_paste(text="This is a test paste",
+                                      title="Expiring paste title",
+                                      expiration=Paste.ONE_HOUR)
+            
+            response = self.client.post(reverse("show_paste", kwargs={"char_id": char_id}))
+            
+            self.assertContains(response, "Expiring paste title")
+            self.assertNotContains(response, "The paste you tried to view has expired")
+            
+        with freeze_time("2015-01-01 13:00:01"):
+            response = self.client.post(reverse("show_paste", kwargs={"char_id": char_id}))
+            
+            self.assertContains(response, "The paste you tried to view has expired", status_code=404)
+            
     def test_raw_paste_displayed_correctly(self):
         """
         Create a paste and view it in raw format

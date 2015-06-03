@@ -104,15 +104,15 @@ class Paste(models.Model):
         exp_datetime = timezone.now()
         
         if expiration == self.FIFTEEN_MINUTES:
-            exp_datetime += datetime.timedelta(minutes=15)
+            exp_datetime += timezone.timedelta(minutes=15)
         elif expiration == self.ONE_HOUR:
-            exp_datetime += datetime.timedelta(hours=1)
+            exp_datetime += timezone.timedelta(hours=1)
         elif expiration == self.ONE_DAY:
-            exp_datetime += datetime.timedelta(hours=24)
+            exp_datetime += timezone.timedelta(hours=24)
         elif expiration == self.ONE_WEEK:
-            exp_datetime += datetime.timedelta(weeks=1)
+            exp_datetime += timezone.timedelta(weeks=1)
         elif expiration == self.ONE_MONTH:
-            exp_datetime += datetime.timedelta(hours=24*31) # Assume one month means 31 days
+            exp_datetime += timezone.timedelta(hours=24*31) # Assume one month means 31 days
             
         return exp_datetime
     
@@ -206,7 +206,7 @@ class Paste(models.Model):
         
         current_datetime = timezone.now()
         
-        if self.expiration_datetime > current_datetime:
+        if self.expiration_datetime < current_datetime:
             return True
         else:
             return False
@@ -245,7 +245,7 @@ class Paste(models.Model):
             self.user = user
             
         if expiration != Paste.NEVER and expiration != None:
-            self.expiration_datetime = Paste.get_new_expiration_datetime(expiration)
+            self.expiration_datetime = self.get_new_expiration_datetime(expiration)
         else:
             self.expiration_datetime = None
             

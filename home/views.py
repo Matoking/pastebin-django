@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.db.models import Q
 
+from django.views.decorators.cache import cache_page
+
 from django.utils import timezone
 
 from pastes.forms import SubmitPasteForm
@@ -45,7 +47,7 @@ def home(request):
     return render(request, "home/home.html", {"form": paste_form,
                                               "latest_pastes": latest_pastes,
                                               "languages": languages })
-    
+
 def latest_pastes(request, page=1):
     """
     Show all of the pastes starting from the newest

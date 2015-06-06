@@ -1,7 +1,10 @@
 from pastebin.testcase import CacheAwareTestCase
 
+from freezegun import freeze_time
+
 from django.core.urlresolvers import reverse
 
+@freeze_time("2015-01-01")
 class LatestPastesTests(CacheAwareTestCase):
     def test_latest_pastes_empty(self):
         """
@@ -49,6 +52,27 @@ class LatestPastesTests(CacheAwareTestCase):
         response = self.client.get(reverse("latest_pastes"))
         
         self.assertContains(response, "No pastes uploaded")
+        
+    def test_latest_pastes_doesnt_show_expired_pastes(self):
+        """
+        Upload an expiring paste and check that it isn't visible after it has expired
+        """
+        with freeze_time("2015-01-01 12:00:00"):
+            self.client.post(reverse("home:home"), {"title": "Paste paste",
+                                                    "text": "This is a test.",
+                                                    "syntax_highlighting": "text",
+                                                    "expiration": "1h",
+                                                    "visibility": "public"},
+                                                    follow=True)
+            
+            response = self.client.get(reverse("home:home"))
+            
+            self.assertContains(response, "Paste paste")
+            
+        with freeze_time("2015-01-01 13:00:01"):
+            response = self.client.get(reverse("home:home"))
+            
+            self.assertContains(response, "No pastes have been submitted yet")
         
     def test_random_with_no_pastes_redirects_to_home(self):
         """

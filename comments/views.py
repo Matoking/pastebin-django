@@ -8,6 +8,8 @@ from pastes.models import Paste
 from comments.models import Comment
 from comments.forms import SubmitCommentForm
 
+from freezegun import freeze_time
+
 import json
 import math
 

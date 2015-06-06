@@ -35,7 +35,7 @@ class PasteManager(models.Manager):
             
         if not include_expired:
             current_datetime = timezone.now()
-            pastes = pastes.filter(Q(expiration_datetime__isnull=True) | Q(expiration_datetime__lte=current_datetime))
+            pastes = pastes.filter(Q(expiration_datetime__isnull=True) | Q(expiration_datetime__gte=current_datetime))
             
         if not include_hidden:
             pastes = pastes.filter(hidden=False)

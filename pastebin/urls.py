@@ -26,10 +26,10 @@ urlpatterns = patterns('',
     url(r'^users/', include("users.urls", namespace="users")),
     url(r'^comments/', include("comments.urls", namespace="comments")),
     
-    url(r'^(?P<char_id>\w{8})/(?P<version>\d+)/raw', paste_views.show_paste, {"raw": True}, name="raw_paste"),
+    url(r'^(?P<char_id>\w{8})/raw/(?P<version>\d+)', paste_views.show_paste, {"raw": True}, name="raw_paste"),
     url(r'^(?P<char_id>\w{8})/raw', paste_views.show_paste, {"raw": True}, name="raw_paste"),
     
-    url(r'^(?P<char_id>\w{8})/(?P<version>\d+)/download', paste_views.show_paste, {"download": True}, name="download_paste"),
+    url(r'^(?P<char_id>\w{8})/download/(?P<version>\d+)', paste_views.show_paste, {"download": True}, name="download_paste"),
     url(r'^(?P<char_id>\w{8})/download', paste_views.show_paste, {"download": True}, name="download_paste"),
     
     url(r'^(?P<char_id>\w{8})/(?P<version>\d+)', paste_views.show_paste, name="show_paste"),

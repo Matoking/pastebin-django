@@ -22,12 +22,6 @@
 				</div>
 				{% endif %}
 				<br>
-				{# Print errors related to the text field here #}
-				{% if form.text.errors %}
-				<div class="alert alert-danger">
-					{{ form.text.errors }}
-				</div>
-				{% endif %}
 				<div role="tabpanel">
 					{% include "home/submit_paste_tabs.html" %}
 					<div class="form-group form-actions">

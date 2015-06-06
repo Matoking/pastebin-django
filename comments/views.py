@@ -2,13 +2,17 @@ from django.shortcuts import render
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 
+from pastebin import settings
+
 from pastebin.util import queryset_to_list
 
 from pastes.models import Paste
 from comments.models import Comment
 from comments.forms import SubmitCommentForm
 
-from freezegun import freeze_time
+from users.models import Limiter
+
+from humanfriendly import format_timespan
 
 import json
 import math
@@ -85,10 +89,15 @@ def add_comment(request):
         response["data"]["message"] = "The paste couldn't be found."
         return HttpResponse(json.dumps(response), status=422)
     
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated() or not request.user.is_active:
         response["status"] = "fail"
         response["data"]["message"] = "You are not logged in."
         return HttpResponse(json.dumps(response), status=422)
+    
+    if Limiter.is_limit_reached(request, Limiter.COMMENT):
+        response["status"] = "fail"
+        response["data"]["message"] = "You can only post %s comments every %s." % (Limiter.get_action_limit(request, Limiter.COMMENT), format_timespan(settings.MAX_COMMENTS_PERIOD))
+        return HttpResponse(json.dumps(response))
     
     submit_form = SubmitCommentForm(request.POST or None)
         
@@ -99,6 +108,8 @@ def add_comment(request):
                           user=request.user,
                           paste=paste)
         comment.save()
+        
+        Limiter.increase_action_count(request, Limiter.COMMENT)
         
         total_comment_count = Comment.objects.filter(paste=paste).count()
         

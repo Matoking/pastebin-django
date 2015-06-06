@@ -1,5 +1,10 @@
 from django import forms
+
+from pastebin import settings
 from pastes.models import Paste
+from users.models import Limiter
+
+from humanfriendly import format_timespan
 
 import highlighting
 
@@ -40,6 +45,14 @@ class SubmitPasteForm(forms.Form):
                                    widget=forms.HiddenInput(),
                                    required=False)
     
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        
+        if self.request == None:
+            raise AttributeError("'%s' requires a valid Django request object as its request parameter" % self.__class__.__name__)
+        
+        super(SubmitPasteForm, self).__init__(*args, **kwargs)
+    
     def clean_title(self):
         """
         Replace the title with Untitled if it is not provided
@@ -51,6 +64,17 @@ class SubmitPasteForm(forms.Form):
             title = "Untitled"
             
         return title
+    
+    def clean_text(self):
+        """
+        Check that the user hasn't uploaded too many pastes
+        """
+        if Limiter.is_limit_reached(self.request, Limiter.PASTE_UPLOAD):
+            action_limit = Limiter.get_action_limit(self.request, Limiter.PASTE_UPLOAD)
+            
+            raise forms.ValidationError("You can only upload %s pastes every %s." % (action_limit, format_timespan(settings.MAX_PASTE_UPLOADS_PERIOD)))
+    
+        return self.cleaned_data.get("text")
     
 class EditPasteForm(forms.Form):
     """
@@ -73,6 +97,14 @@ class EditPasteForm(forms.Form):
     encrypted = forms.BooleanField(initial=False,
                                    widget=forms.HiddenInput(),
                                    required=False)
+    
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        
+        if self.request == None:
+            raise AttributeError("'%s' requires a valid Django request object as its request parameter" % self.__class__.__name__)
+        
+        super(EditPasteForm, self).__init__(*args, **kwargs)
         
     def clean_title(self):
         """
@@ -85,6 +117,17 @@ class EditPasteForm(forms.Form):
             
         return title
     
+    def clean_text(self):
+        """
+        Check that the user hasn't edited too many pastes
+        """
+        if Limiter.is_limit_reached(self.request, Limiter.PASTE_EDIT):
+            action_limit = Limiter.get_action_limit(self.request, Limiter.PASTE_EDIT)
+            
+            raise forms.ValidationError("You can only edit pastes %s times every %s." % (action_limit, format_timespan(settings.MAX_PASTE_EDITS_PERIOD)))
+
+        return self.cleaned_data.get("text")
+
 class RemovePasteForm(forms.Form):
     """
     Form to remove the paste

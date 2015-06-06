@@ -1,34 +1,28 @@
-Pastebin web application developed in Python using Django for Tsoha2015
+pastebin-django
 ===
+A pastebin web application developed in Django featuring plenty of features, including:
 
-Project idea
+* User registration, allowing pastes to be updated and removed
+* Syntax highlighting (server-side Pygments used for unencrypted pastes, client-side Prism JS library for encrypted pastes)
+* Paste encryption using Stanford Javascript Crypto Library
+* Hidden pastes
+* Paste versioning and history
+* Feature to report pastes to site administrators
+* Paste favoriting
+* Paste comments
+
+Looking for the old version of pastebin-django as it was developed for Tsoha2015? [Check it out here.](https://github.com/Matoking/pastebin-django/tree/tsoha)
+
+Credits
 --
-Pastebin web application that allows both visitors and registered users to submit and view pastes. Registered users can
-also post comments, delete their own pastes and mark selected pastes as favorites.
+pastebin-django is built on the Django web framework
 
-Links
---
-[Test site](http://pastesite.matoking.com)
-[Example paste](http://pastesite.matoking.com/rWBz9nQX/)
+[Django](https://www.djangoproject.com/)
 
-[Documentation as a PDF](https://github.com/Matoking/pastebin-django/blob/master/doc/documentation.pdf)
+and it uses the following JavaScript libraries
 
-[Various documentation files](https://github.com/Matoking/pastebin-django/blob/master/doc)
-
-Features
---
-- uploading and viewing pastes (you don't say)
-- user registration
-	* allows user to delete his own pastes, mark other pastes as favorites
-- comments
-- astoundingly okay-ish website layout, courtesy of Twitter Bootstrap
-
-Test credentials
---
-You can login using the following credentials. Well, until someone either changes the password or deletes the user altogether.
-
-Username: TestUser
-
-Password: testme
-
-Alternatively, you can register an account at the site and use that instead.
+[Stanford Javascript Crypto Library](https://github.com/bitwiseshiftleft/sjcl)
+[Prism](http://prismjs.com/)
+[JQuery](http://jquery.com/)
+[Timeago](http://timeago.yarp.com/)
+[Readmore.js](http://jedfoster.com/Readmore.js/)

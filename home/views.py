@@ -10,6 +10,8 @@ from pastes.models import Paste, LatestPastes
 
 from pastebin.util import Paginator
 
+from users.models import Limiter
+
 import highlighting
 import math
 
@@ -18,7 +20,7 @@ def home(request):
     Display the index page with the form to submit a paste, as well as the most recent
     pastes
     """
-    paste_form = SubmitPasteForm(request.POST or None)
+    paste_form = SubmitPasteForm(request.POST or None, request=request)
     
     latest_pastes = Paste.objects.get_pastes(include_expired=False, include_hidden=False,
                                              count=15)
@@ -33,6 +35,7 @@ def home(request):
             user = request.user
         
         paste = Paste()
+        
         char_id = paste.add_paste(title=paste_data["title"],
                                   user=user,
                                   text=paste_data["text"],
@@ -40,6 +43,8 @@ def home(request):
                                   visibility=paste_data["visibility"],
                                   format=paste_data["syntax_highlighting"],
                                   encrypted=paste_data["encrypted"])
+        
+        Limiter.increase_action_count(request, Limiter.PASTE_UPLOAD)
         
         # Redirect to the newly created paste
         return redirect("show_paste", char_id=char_id)

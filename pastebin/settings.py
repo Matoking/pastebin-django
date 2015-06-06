@@ -27,6 +27,31 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = [".pastesite.matoking.com"]
 
+# Limits
+# Limit the amount of paste submissions, edits, etc. unregistered guests and registered users
+# can do over a specified time period
+#
+# If the user is registered, user-specific limit is used,
+# otherwise the guest-specific limit is used
+#
+# The limit can be disabled by setting it to -1, which means the amount of actions the user performs
+# won't be tracked
+
+# Paste upload limits
+MAX_PASTE_UPLOADS_PERIOD = 86400 # 24 hours
+
+MAX_PASTE_UPLOADS_PER_GUEST = 20
+MAX_PASTE_UPLOADS_PER_USER = 40
+
+# Paste edit limits
+MAX_PASTE_EDITS_PERIOD = 86400 # 24 hours
+
+MAX_PASTE_EDITS_PER_USER = 50
+
+# Comment limits
+MAX_COMMENTS_PERIOD = 1800 # 30 minutes
+
+MAX_COMMENTS_PER_USER = 20
 
 # Application definition
 
@@ -98,9 +123,6 @@ DATABASES = {
         'PASSWORD': 'superpass',
         'HOST': 'localhost',
         'PORT': '', # Default
-        'TEST': {
-            'NAME': 'test_pastesite',
-        },
     }
 }
 

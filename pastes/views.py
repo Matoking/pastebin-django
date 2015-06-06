@@ -7,7 +7,7 @@ from pastes.models import Paste, PasteReport, PasteVersion
 
 from comments.models import Comment
 
-from users.models import Favorite
+from users.models import Favorite, Limiter
 from users.forms import VerifyPasswordForm
 
 from ipware.ip import get_real_ip
@@ -73,6 +73,8 @@ def show_paste(request, char_id, raw=False, download=False, version=None):
         return render(request, "pastes/show_paste/show_paste.html", {"paste": paste,
                                                                      "paste_version": paste_version,
                                                                      "paste_text": paste_text,
+                                                                     
+                                                                     "version": version,
                                                                      
                                                                      "paste_favorited": paste_favorited,
                                                                      "paste_hits": paste_hits,
@@ -143,7 +145,8 @@ def edit_paste(request, char_id):
     else:
         visibility = "public"
     
-    edit_form = EditPasteForm(request.POST or None, initial={"title": paste.title,
+    edit_form = EditPasteForm(request.POST or None, request=request,
+                                                    initial={"title": paste.title,
                                                              "visibility": visibility,
                                                              "syntax_highlighting": paste.format})
     
@@ -156,6 +159,8 @@ def edit_paste(request, char_id):
                            format=paste_data["syntax_highlighting"],
                            encrypted=paste_data["encrypted"],
                            note=paste_data["note"])
+        
+        Limiter.increase_action_count(request, Limiter.PASTE_EDIT)
         
         return redirect("show_paste", char_id=char_id)
     

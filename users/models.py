@@ -96,16 +96,25 @@ class Limiter(object):
                 return 0
             else:
                 count = int(con.incr("paste_upload_count:%s" % ip))
+                
+                if count == 1:
+                    con.expire("comment_count:%s" % ip, settings.MAX_PASTE_UPLOADS_PERIOD)
         elif action == Limiter.PASTE_EDIT:
             if settings.MAX_PASTE_EDITS_PER_USER == -1:
                 return 0
             else:
                 count = int(con.incr("paste_edit_count:%s" % ip))
+                
+                if count == 1:
+                    con.expire("comment_count:%s" % ip, settings.MAX_PASTE_EDITS_PERIOD)
         elif action == Limiter.COMMENT:
             if settings.MAX_COMMENTS_PER_USER == -1:
                 return 0
             else:
                 count = int(con.incr("comment_count:%s" % ip))
+                
+                if count == 1:
+                    con.expire("comment_count:%s" % ip, settings.MAX_COMMENTS_PERIOD)
             
         return count
     

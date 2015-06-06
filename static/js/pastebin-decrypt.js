@@ -60,6 +60,12 @@ pastebin.languages = {
 
 pastebin.loadDecrypt = function() {
 	$("#paste-decrypt").click(function() { pastebin.decryptPaste(); });
+	
+	$("#paste-password").keyup(function(evt) {
+		if (evt.keyCode == 13) {
+			$("#paste-decrypt").click().focus();
+		}
+	});
 };
 
 pastebin.decryptPaste = function() {

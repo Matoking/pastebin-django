@@ -35,11 +35,11 @@ pastebin.updateFavoriteButton = function() {
 	if (pastebin_paste_favorited) {
 		$("#favorite-button").html("<span class='glyphicon glyphicon-remove'></span> Remove from favorites");
 		$("#favorite-button").attr("onclick", "pastebin.removeFromFavorites()");
-		$("#favorite-button").attr("class", "btn btn-warning btn-sm");
+		$("#favorite-button").attr("class", "btn btn-warning btn-xs");
 	} else {
 		$("#favorite-button").html("<span class='glyphicon glyphicon-star'></span> Add to favorites");
 		$("#favorite-button").attr("onclick", "pastebin.addToFavorites()");
-		$("#favorite-button").attr("class", "btn btn-info btn-sm");
+		$("#favorite-button").attr("class", "btn btn-info btn-xs");
 	}
 };
 		

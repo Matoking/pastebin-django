@@ -1,6 +1,7 @@
 from django import template
 from django.template import Template, Variable, TemplateSyntaxError
 from django.utils import timezone
+from django.core.cache import cache
 
 from itertools import chain
 
@@ -122,7 +123,15 @@ class TotalPasteCountNode(template.Node):
     Returns total amount of pastes uploaded to the site
     """
     def render(self, context):
-        return Paste.objects.filter(hidden=False).count()
+        count = cache.get("total_paste_count")
+        
+        if count != None:
+            return count
+        else:
+            count = Paste.objects.filter(hidden=False).count()
+            cache.set("total_paste_count", count, 15)
+            
+        return count
     
 @register.tag(name="get_total_paste_count")
 def get_total_paste_count(parser, token):
@@ -133,7 +142,15 @@ class TotalCommentCountNode(template.Node):
     Returns total amount of comments posted on the site
     """
     def render(self, context):
-        return Comment.objects.all().count()
+        count = cache.get("total_comment_count")
+        
+        if count != None:
+            return count
+        else:
+            count = Comment.objects.all().count()
+            cache.set("total_comment_count", count, 15)
+        
+        return count
     
 @register.tag(name="get_unread_paste_report_count")
 def get_unread_paste_report_count(parser, token):

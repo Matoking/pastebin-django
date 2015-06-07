@@ -1,5 +1,6 @@
 from django.db import models, transaction
-from pastebin import settings
+from django.core.cache import cache
+
 from django.contrib.auth.models import User
 
 from django_redis import get_redis_connection
@@ -9,6 +10,7 @@ from ipware.ip import get_real_ip
 from sql import cursor
 
 from pastes.models import Paste
+from pastebin import settings
 
 import datetime
 
@@ -19,6 +21,21 @@ class Favorite(models.Model):
     paste = models.ForeignKey(Paste)
     user = models.ForeignKey(User)
     added = models.DateTimeField(auto_now_add=True)
+    
+    @staticmethod
+    def has_user_favorited_paste(user, paste):
+        """
+        Returns True or False depending on whether user has favorited the paste
+        """
+        result = cache.get("paste_favorited:%s:%s" % (user.username, paste.char_id))
+        
+        if result != None:
+            return result
+        else:
+            result = Favorite.objects.filter(user=user, paste=paste).exists()
+            cache.set("paste_favorited:%s:%s" % (user.username, paste.char_id), result)
+            
+            return result
     
 class PastebinUser(object):
     @staticmethod

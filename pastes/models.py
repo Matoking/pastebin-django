@@ -168,29 +168,33 @@ class Paste(models.Model):
             hash = self.hash
             format = self.format
         else:
-            paste_version = PasteVersion.objects.get(paste=self, version=version)
+            paste_version = cache.get("paste_version:%s:%s" % (self.char_id, version))
+            
+            if paste_version == None:
+                paste_version = PasteVersion.objects.get(paste=self, version=version)
+                cache.set("paste_version:%s:%s" % (self.char_id, version), paste_version)
             
             hash = paste_version.hash
             format = paste_version.format
         
         if formatted and not self.encrypted:
-            cache_result = cache.get("paste:%s:%s:formatted_text" % (hash, format))
+            cache_result = cache.get("paste_content:%s:%s:formatted_text" % (hash, format))
             
             if cache_result != None:
                 return cache_result
             
             paste_content = PasteContent.objects.get(hash=hash, format=format)
             
-            cache.set("paste:%s:%s:formatted_text" % (hash, format), paste_content.text)
+            cache.set("paste_content:%s:%s:formatted_text" % (hash, format), paste_content.text)
         else:
-            cache_result = cache.get("paste:%s:text" % hash)
+            cache_result = cache.get("paste_content:%s:text" % hash)
             
             if cache_result != None:
                 return cache_result
             
             paste_content = PasteContent.objects.get(hash=hash, format="none")
             
-            cache.set("paste:%s:text" % hash, paste_content.text)
+            cache.set("paste_content:%s:text" % hash, paste_content.text)
        
         return paste_content.text
     
@@ -275,6 +279,7 @@ class Paste(models.Model):
                                          hash=self.hash,
                                          format=self.format)
             first_version.save()
+            cache.set("paste_version:%s:1" % (char_id), first_version)
             
             if not self.encrypted and not self.hidden and self.expiration_datetime == None: 
                 con = get_redis_connection("persistent")
@@ -312,10 +317,6 @@ class Paste(models.Model):
             
             if not encrypted:
                 formatted.add_paste_text(text, format)
-                
-            # Clear cache
-            cache.delete("paste:%s:formatted_text" % self.id)
-            cache.delete("paste:%s:text" % self.id)
             
             new_version = PasteVersion(paste=self,
                                        version=self.version,
@@ -396,16 +397,24 @@ class Paste(models.Model):
         """
         con = get_redis_connection("persistent")
         
-        if con.get("paste:%s:hit:%s" % (self.id, ip_address)):
-            hits = con.get("paste:%s:hits" % self.id)
+        if con.get("paste:%s:hit:%s" % (self.char_id, ip_address)):
+            hits = con.get("paste:%s:hits" % self.char_id)
             if hits == None:
                 return 0
             else:
                 return int(hits)
         else:
             # Add an entry for this hit and store it for 24 hours
-            con.setex("paste:%s:hit:%s" % (self.id, ip_address), 86400, 1)
-            return con.incr("paste:%s:hits" % self.id)
+            con.setex("paste:%s:hit:%s" % (self.char_id, ip_address), 86400, 1)
+            return con.incr("paste:%s:hits" % self.char_id)
+        
+    def save(self, *args, **kwargs):
+        """
+        Override the save method to also save the result to cache
+        """
+        super(Paste, self).save(*args, **kwargs)
+        
+        cache.set("paste:%s" % self.char_id, self)
         
     def __unicode__(self):
         return "%s (%s)" % (self.title, self.char_id)

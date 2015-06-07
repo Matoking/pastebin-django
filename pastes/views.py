@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.cache import cache
 
 from pastes.forms import SubmitPasteForm, EditPasteForm, RemovePasteForm, ReportPasteForm
 from pastes.models import Paste, PasteReport, PasteVersion
@@ -23,13 +24,24 @@ def show_paste(request, char_id, raw=False, download=False, version=None):
     """
     # If paste has expired, show the ordinary "paste not found" page
     try:
-        paste = Paste.objects.get(char_id=char_id)
+        paste = cache.get("paste:%s" % char_id)
+        
+        if paste == None:
+            paste = Paste.objects.get(char_id=char_id)
+            cache.set("paste:%s" % char_id, paste)
+        elif paste == False:
+            return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)
         
         if version == None:
             version = paste.version
             
-        paste_version = PasteVersion.objects.get(paste=paste, version=version)
+        paste_version = cache.get("paste_version:%s:%s" % (char_id, version))
+        
+        if paste_version == None:
+            paste_version = PasteVersion.objects.get(paste=paste, version=version)
+            cache.set("paste_version:%s:%s" % (char_id, version), paste_version)
     except ObjectDoesNotExist:
+        cache.set("paste:%s" % char_id, False)
         return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)
     
     if paste.is_expired():
@@ -56,7 +68,7 @@ def show_paste(request, char_id, raw=False, download=False, version=None):
         paste_favorited = False
         
         if request.user.is_authenticated():
-            paste_favorited = Favorite.objects.filter(user=request.user, paste=paste).exists()
+            paste_favorited = Favorite.has_user_favorited_paste(request.user, paste)
             
         # Add a hit to this paste if the hit is an unique (1 hit = 1 IP address once per 24 hours)
         ip_address = get_real_ip(request)
@@ -66,7 +78,11 @@ def show_paste(request, char_id, raw=False, download=False, version=None):
         else:
             paste_hits = paste.get_hit_count()
             
-        comment_count = Comment.objects.filter(paste=paste).count()
+        comment_count = cache.get("paste_comment_count:%s" % char_id)
+        
+        if comment_count == None:
+            comment_count = Comment.objects.filter(paste=paste).count()
+            cache.set("paste_comment_count:%s" % char_id, comment_count)
         
         paste_text = paste.get_text(version=version)
             
@@ -252,10 +268,14 @@ def change_paste_favorite(request):
         if action == "add":
             favorite = Favorite(user=request.user, paste=Paste.objects.get(char_id=char_id))
             favorite.save()
+            cache.set("paste_favorited:%s:%s" % (request.user.username, char_id), True)
+            
             response["data"]["char_id"] = char_id
             response["data"]["favorited"] = True
         elif action == "remove":
             result = Favorite.objects.filter(user=request.user, paste__char_id=char_id).delete()
+            cache.set("paste_favorited:%s:%s" % (request.user.username, char_id), False)
+            
             response["data"]["char_id"] = char_id
             response["data"]["favorited"] = False
         else:

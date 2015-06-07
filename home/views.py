@@ -23,8 +23,12 @@ def home(request):
     """
     paste_form = SubmitPasteForm(request.POST or None, request=request)
     
-    latest_pastes = Paste.objects.get_pastes(include_expired=False, include_hidden=False,
-                                             count=15)
+    latest_pastes = cache.get("home_latest_pastes")
+    
+    if latest_pastes == None:
+        latest_pastes = Paste.objects.get_pastes(include_expired=False, include_hidden=False,
+                                                 count=15)
+        cache.set("home_latest_pastes", latest_pastes, 5)
     
     languages = highlighting.settings.LANGUAGES
     
@@ -75,7 +79,7 @@ def latest_pastes(request, page=1):
     
     if pastes == None:
         pastes = Paste.objects.get_pastes(count=PASTES_PER_PAGE, offset=offset, include_hidden=False)
-        cache.set("latest_pastes:%s" % page, pastes, 10)
+        cache.set("latest_pastes:%s" % page, pastes, 5)
     
     pages = Paginator.get_pages(page, PASTES_PER_PAGE, total_paste_count)
     total_pages = math.ceil(float(total_paste_count) / float(PASTES_PER_PAGE))

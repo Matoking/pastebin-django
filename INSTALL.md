@@ -39,9 +39,13 @@ After this is done, run the following command in the root of your virtualenv env
 
 python manage.py syncdb
 
-After you have let Django sync its own database tables, you can run the SQL queries in sql/create_tables.sql to create the rest of the tables.
+Configuring the Redis instance
+--
+pastebin-django uses a data structure server to both to store persistent data that wouldn't be a good fit for a relational database (eg. paste hit counts). You can install Redis on Debian or a derivative using the following command.
 
-psql DATABASE_NAME < sql/create_tables.sql
+sudo apt-get install redis-server
+
+By default Redis runs on port 6379 and saves its data regularly. However, pastebin-django's default settings assume a persistent Redis storage runs on the port 6380, so you may need to change the port for the 'persistent' cache in settings.py to match this port. You can also run a non-persistent Redis server under the port 6379 and a persistent Redis server under port 6380, which matches the default settings. 
 
 Running the unit tests
 --

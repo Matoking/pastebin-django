@@ -90,7 +90,10 @@ def profile(request, username, tab="home", page=1):
         if profile_user == None:
             profile_user = User.objects.get(username=username)
             cache.set("user:%s" % username, profile_user)
+        elif profile_user == False:
+            return render(request, "users/profile/profile_error.html", {"reason": "not_found"}, status=404)
     except ObjectDoesNotExist:
+        cache.set("user:%s" % username, False)
         return render(request, "users/profile/profile_error.html", {"reason": "not_found"}, status=404)
     
     if not profile_user.is_active:

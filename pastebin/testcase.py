@@ -6,12 +6,20 @@ from django_redis import get_redis_connection
 
 class CacheAwareTestCase(TestCase):
     """
-    Cache-aware TestCase that clears both Redis servers on startup
+    Cache-aware TestCase that clears the Redis storage and cache on startup
     """
-    def setUp(self):
-        super(CacheAwareTestCase, self).setUp()
+    def clearCache(self):
+        """
+        Clears the cache
         
+        Can be invoked manually if the unit test requires it
+        """
         cache.clear()
         con = get_redis_connection("persistent")
         
         con.flushall()
+        
+    def setUp(self):
+        super(CacheAwareTestCase, self).setUp()
+        
+        self.clearCache()

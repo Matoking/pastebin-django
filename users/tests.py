@@ -2,6 +2,8 @@ from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
+from pastebin.testcase import CacheAwareTestCase
+
 from pastes.models import Paste
 
 from freezegun import freeze_time
@@ -42,7 +44,7 @@ def upload_test_paste(test_case, username="TestUser"):
                            title="Test paste")
 
 @freeze_time("2015-01-01")
-class UserTests(TestCase):
+class UserTests(CacheAwareTestCase):
     def test_user_can_register(self):
         """
         Register with valid details

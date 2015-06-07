@@ -2,6 +2,8 @@ from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.utils.html import escape
 
+from pastebin.testcase import CacheAwareTestCase
+
 from freezegun import freeze_time
 
 from pastes.models import Paste
@@ -40,7 +42,7 @@ def upload_test_paste(test_case, username="TestUser"):
                            title="Test paste")
 
 @freeze_time("2015-01-01")
-class PasteTests(TestCase):
+class PasteTests(CacheAwareTestCase):
     def test_upload_paste(self):
         """
         Check that paste is submitted correctly and can be viewed

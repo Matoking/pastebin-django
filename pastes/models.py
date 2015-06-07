@@ -279,7 +279,7 @@ class Paste(models.Model):
                                          hash=self.hash,
                                          format=self.format)
             first_version.save()
-            cache.set("paste_version:%s:1" % (char_id), first_version)
+            cache.set("paste_version:%s:1" % (self.char_id), first_version)
             
             if not self.encrypted and not self.hidden and self.expiration_datetime == None: 
                 con = get_redis_connection("persistent")
@@ -325,7 +325,7 @@ class Paste(models.Model):
                                        hash=self.hash,
                                        format=self.format)
             new_version.save()
-            cache.set("paste_version:%s:%s" % (char_id, self.version), new_version)
+            cache.set("paste_version:%s:%s" % (self.char_id, self.version), new_version)
     
     def remove_paste(self, type=ADMIN_REMOVAL, reason=""):
         """

@@ -65,11 +65,13 @@ class LatestPastesTests(CacheAwareTestCase):
                                                     "visibility": "public"},
                                                     follow=True)
             
+            self.clearCache()
             response = self.client.get(reverse("home:home"))
             
             self.assertContains(response, "Paste paste")
             
         with freeze_time("2015-01-01 13:00:01"):
+            self.clearCache()
             response = self.client.get(reverse("home:home"))
             
             self.assertContains(response, "No pastes have been submitted yet")

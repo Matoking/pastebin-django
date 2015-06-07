@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.db.models import Q
+from django.core.cache import cache
 
 from django.views.decorators.cache import cache_page
 
@@ -64,9 +65,18 @@ def latest_pastes(request, page=1):
     current_datetime = timezone.now()
     
     offset = (page-1) * PASTES_PER_PAGE
-    total_paste_count = Paste.objects.filter(hidden=False).filter(Q(expiration_datetime__isnull=True) | Q(expiration_datetime__lte=current_datetime)).count()    
+    total_paste_count = cache.get("total_latest_pastes_count")
     
-    pastes = Paste.objects.get_pastes(count=PASTES_PER_PAGE, offset=offset, include_hidden=False)
+    if total_paste_count == None:
+        total_paste_count = Paste.objects.filter(hidden=False).filter(Q(expiration_datetime__isnull=True) | Q(expiration_datetime__gte=current_datetime)).count()    
+        cache.set("total_latest_pastes_count", total_paste_count)
+    
+    pastes = cache.get("latest_pastes:%s" % page)
+    
+    if pastes == None:
+        pastes = Paste.objects.get_pastes(count=PASTES_PER_PAGE, offset=offset, include_hidden=False)
+        cache.set("latest_pastes:%s" % page, pastes, 10)
+    
     pages = Paginator.get_pages(page, PASTES_PER_PAGE, total_paste_count)
     total_pages = math.ceil(float(total_paste_count) / float(PASTES_PER_PAGE))
     

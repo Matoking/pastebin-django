@@ -325,6 +325,7 @@ class Paste(models.Model):
                                        hash=self.hash,
                                        format=self.format)
             new_version.save()
+            cache.set("paste_version:%s:%s" % (char_id, self.version), new_version)
     
     def remove_paste(self, type=ADMIN_REMOVAL, reason=""):
         """

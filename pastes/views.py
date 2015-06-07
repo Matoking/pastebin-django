@@ -27,7 +27,7 @@ def show_paste(request, char_id, raw=False, download=False, version=None):
         paste = cache.get("paste:%s" % char_id)
         
         if paste == None:
-            paste = Paste.objects.get(char_id=char_id)
+            paste = Paste.objects.select_related("user").get(char_id=char_id)
             cache.set("paste:%s" % char_id, paste)
         elif paste == False:
             return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)
@@ -104,7 +104,14 @@ def paste_history(request, char_id, page=1):
     VERSIONS_PER_PAGE = 15
     
     try:
-        paste = Paste.objects.get(char_id=char_id)
+        paste = cache.get("paste:%s" % char_id)
+        
+        if paste == None:
+            paste = Paste.objects.select_related("user").get(char_id=char_id)
+            cache.set("paste:%s" % char_id, paste)
+        elif paste == False:
+            return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)
+        
     except ObjectDoesNotExist:
         return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)
     
@@ -129,7 +136,7 @@ def paste_history(request, char_id, page=1):
     start = offset
     end = offset + VERSIONS_PER_PAGE
     
-    history = PasteVersion.objects.filter(paste=paste)[start:end]
+    history = PasteVersion.objects.filter(paste=paste).order_by("-submitted")[start:end]
     pages = Paginator.get_pages(page, VERSIONS_PER_PAGE, total_version_count)
     
     return render(request, "pastes/paste_history/paste_history.html", {"paste": paste,
@@ -149,12 +156,23 @@ def edit_paste(request, char_id):
     if not request.user.is_authenticated():
         return render(request, "pastes/edit_paste/edit_error.html", {"reason": "not_logged_in"})
     try:
-        paste = Paste.objects.get(char_id=char_id)
+        paste = cache.get("paste:%s" % char_id)
+        
+        if paste == None:
+            paste = Paste.objects.select_related("user").get(char_id=char_id)
+            cache.set("paste:%s" % char_id, paste)
+        elif paste == False:
+            return render(request, "pastes/edit_paste/show_error.html", {"reason": "not_found"}, status=404)
     except ObjectDoesNotExist:
         return render(request, "pastes/edit_paste/edit_error.html", {"reason": "not_found"})
     
     if paste.user != request.user and not request.user.is_staff:
         return render(request, "pastes/edit_paste/edit_error.html", {"reason": "not_owner"})
+    
+    if paste.is_expired():
+        return render(request, "pastes/edit_paste/edit_error.html", {"reason": "expired"})
+    if paste.is_removed():
+        return render(request, "pastes/edit_paste/edit_error.html", {"reason": "removed"})
     
     if paste.hidden:
         visibility = "hidden"
@@ -195,13 +213,24 @@ def remove_paste(request, char_id):
         return render(request, "pastes/remove_paste/remove_error.html", {"reason": "not_logged_in"})
     
     try:
-        paste = Paste.objects.get(char_id=char_id)
+        paste = cache.get("paste:%s" % char_id)
+        
+        if paste == None:
+            paste = Paste.objects.select_related("user").get(char_id=char_id)
+            cache.set("paste:%s" % char_id, paste)
+        elif paste == False:
+            return render(request, "pastes/remove_paste/show_error.html", {"reason": "not_found"}, status=404)
     except ObjectDoesNotExist:
         return render(request, "pastes/remove_paste/remove_error.html", {"reason": "not_found"})
     
     # Check that the user can delete the paste
     if paste.user != request.user and not request.user.is_staff:
         return render(request, "pastes/remove_paste/remove_error.html", {"reason": "not_owner"})
+    
+    if paste.is_expired():
+        return render(request, "pastes/remove_paste/remove_error.html", {"reason": "expired"})
+    if paste.is_removed():
+        return render(request, "pastes/remove_paste/remove_error.html", {"reason": "removed"})
     
     verify_form = VerifyPasswordForm(request.POST or None, user=request.user)
     remove_form = RemovePasteForm(request.POST or None)
@@ -224,9 +253,20 @@ def report_paste(request, char_id):
     Report a paste
     """
     try:
-        paste = Paste.objects.get(char_id=char_id)
+        paste = cache.get("paste:%s" % char_id)
+        
+        if paste == None:
+            paste = Paste.objects.select_related("user").get(char_id=char_id)
+            cache.set("paste:%s" % char_id, paste)
+        elif paste == False:
+            return render(request, "pastes/report_paste/show_error.html", {"reason": "not_found"}, status=404)
     except ObjectDoesNotExist:
         return render(request, "pastes/report_paste/report_error.html", {"reason": "not_found"})
+    
+    if paste.is_expired():
+        return render(request, "pastes/report_paste/report_error.html", {"reason": "expired"})
+    if paste.is_removed():
+        return render(request, "pastes/report_paste/report_error.html", {"reason": "removed"})
     
     user = None
     
@@ -265,6 +305,23 @@ def change_paste_favorite(request):
         response["status"] = "fail"
         response["data"]["message"] = "Not logged in."
     else:
+        paste = cache.get("paste:%s" % char_id)
+        
+        if paste == None:
+            try:
+                paste = Paste.objects.select_related("user").get(char_id=char_id)
+                cache.set("paste:%s" % char_id, paste)
+            except ObjectDoesNotExist:
+                cache.set("paste:%s" % char_id, False)
+                
+                response["status"] = "fail"
+                response["data"]["message"] = "The paste has been removed and can no longer be added to favorites."
+                return HttpResponse(json.dumps(response))
+        elif paste == False:
+            response["status"] = "fail"
+            response["data"]["message"] = "The paste has been removed and can no longer be added to favorites."
+            return HttpResponse(json.dumps(response))
+        
         if action == "add":
             favorite = Favorite(user=request.user, paste=Paste.objects.get(char_id=char_id))
             favorite.save()

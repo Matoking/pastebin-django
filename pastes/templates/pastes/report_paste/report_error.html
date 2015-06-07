@@ -11,6 +11,12 @@
 				{% if reason == "not_found" %}
 				<strong>Paste not found</strong><br>
 				The paste you tried to report was not found.
+				{% elif reason == "removed" %}
+				<strong>Paste removed</strong><br>
+				This paste has been removed and can no longer be reported.
+				{% elif reason == "expired" %}
+				<strong>Paste expired</strong><br>
+				This paste has expired and can no longer be reported.
 				{% endif %}
 			</div>
 		</div>

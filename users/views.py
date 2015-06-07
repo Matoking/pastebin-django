@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.cache import cache
 from django.http import HttpResponse, HttpResponseRedirect
 
 from users.models import PastebinUser
@@ -84,26 +85,41 @@ def profile(request, username, tab="home", page=1):
     page = int(page)
     
     try:
-        profile_user = User.objects.get(username=username)
+        profile_user = cache.get("user:%s" % username)
+        
+        if profile_user == None:
+            profile_user = User.objects.get(username=username)
+            cache.set("user:%s" % username, profile_user)
     except ObjectDoesNotExist:
         return render(request, "users/profile/profile_error.html", {"reason": "not_found"}, status=404)
     
     if not profile_user.is_active:
         return render(request, "users/profile/profile_error.html", {"reason": "not_found"}, status=404)
     
-    user_pastes = Paste.objects.filter(user=profile_user, removed=Paste.NO_REMOVAL)
-    
-    # If the user is viewing his own pastes, also include hidden pastes
     if request.user != profile_user:
-        user_pastes = user_pastes.filter(hidden=False)
+        total_paste_count = cache.get("user_public_paste_count:%s" % profile_user.username)
+    else:
+        total_paste_count = cache.get("user_paste_count:%s" % profile_user.username)
+    
+    # If user is viewing his own profile, also include hidden pastes
+    if total_paste_count == None and request.user != profile_user:
+        total_paste_count = Paste.objects.filter(user=profile_user, removed=Paste.NO_REMOVAL).filter(hidden=False).count()
+        cache.set("user_public_paste_count:%s" % profile_user.username, total_paste_count)
+    elif total_paste_count == None and request.user == profile_user:
+        total_paste_count = Paste.objects.filter(user=profile_user, removed=Paste.NO_REMOVAL).count()
+        cache.set("user_paste_count:%s" % profile_user.username, total_paste_count)
         
-    total_paste_count = user_pastes.count()
+    total_favorite_count = cache.get("user_favorite_count:%s" % profile_user.username)
+    
+    if total_favorite_count == None:
+        total_favorite_count = Favorite.objects.filter(user=profile_user).count()
+        cache.set("user_favorite_count:%s" % profile_user.username, total_favorite_count)
     
     args = {"profile_user": profile_user,
             "current_page": page,
             "tab": tab,
             
-            "total_favorite_count": Favorite.objects.filter(user=profile_user).count(),
+            "total_favorite_count": total_favorite_count,
             "total_paste_count": total_paste_count}
     
     if tab == "home":
@@ -134,12 +150,24 @@ def home(request, args):
     """
     Display user profile's home with the most recent pastes and favorites
     """
-    args["favorites"] = Favorite.objects.filter(user=args["profile_user"]).order_by('-added').prefetch_related('paste')[:10]
+    args["favorites"] = cache.get("profile_favorites:%s" % args["profile_user"].username)
+    
+    if args["favorites"] == None:
+        args["favorites"] = Favorite.objects.filter(user=args["profile_user"]).order_by('-added').select_related('paste')[:10]
+        cache.set("profile_favorites:%s" % args["profile_user"].username, args["favorites"])
     
     if request.user == args["profile_user"]:
-        args["pastes"] = Paste.objects.get_pastes(args["profile_user"], include_hidden=True, count=10)
+        args["pastes"] = cache.get("profile_pastes:%s" % args["profile_user"].username)
+        
+        if args["pastes"] == None:
+            args["pastes"] = Paste.objects.get_pastes(args["profile_user"], include_hidden=True, count=10)
+            cache.set("profile_pastes:%s" % args["profile_user"].username, args["pastes"])
     else:
-        args["pastes"] = Paste.objects.get_pastes(args["profile_user"], include_hidden=False, count=10)
+        args["pastes"] = cache.get("profile_public_pastes:%s" % args["profile_user"].username)
+        
+        if args["pastes"] == None:
+            args["pastes"] = Paste.objects.get_pastes(args["profile_user"], include_hidden=False, count=10)
+            cache.set("profile_public_pastes:%s" % args["profile_user"].username, args["pastes"])
     
     return render(request, "users/profile/home/home.html", args)
     
@@ -160,9 +188,17 @@ def pastes(request, user, args, page=1):
     offset = (page-1) * PASTES_PER_PAGE
     
     if request.user == user:
-        args["pastes"] = Paste.objects.get_pastes(user, count=PASTES_PER_PAGE, include_hidden=True, offset=offset)
+        args["pastes"] = cache.get("user_pastes:%s:%s" % (user.username, page))
+        
+        if args["pastes"] == None:
+            args["pastes"] = Paste.objects.get_pastes(user, count=PASTES_PER_PAGE, include_hidden=True, offset=offset)
+            cache.set("user_pastes:%s:%s" % (user.username, page), args["pastes"])
     else:
-        args["pastes"] = Paste.objects.get_pastes(user, count=PASTES_PER_PAGE, include_hidden=True, offset=offset)
+        args["pastes"] = cache.get("user_public_pastes:%s:%s" % (user.username, page))
+        
+        if args["pastes"] == None:
+            args["pastes"] = Paste.objects.get_pastes(user, count=PASTES_PER_PAGE, include_hidden=True, offset=offset)
+            cache.set("user_public_pastes:%s:%s" % (user.username, page), args["pastes"])
         
     args["pages"] = Paginator.get_pages(page, PASTES_PER_PAGE, args["total_paste_count"])
     
@@ -185,7 +221,12 @@ def favorites(request, user, args, page=1):
     start = (page-1) * FAVORITES_PER_PAGE
     end = start + FAVORITES_PER_PAGE
     
-    args["favorites"] = Favorite.objects.filter(user=user).prefetch_related("paste")[start:end]
+    args["favorites"] = cache.get("user_favorites:%s:%s" % (user.username, page))
+    
+    if args["favorites"] == None:
+        args["favorites"] = Favorite.objects.filter(user=user).select_related("paste")[start:end]
+        cache.set("user_favorites:%s:%s" % (user.username, page), args["favorites"])
+        
     args["pages"] = Paginator.get_pages(page, FAVORITES_PER_PAGE, args["total_favorite_count"])
     
     return render(request, "users/profile/favorites/favorites.html", args)

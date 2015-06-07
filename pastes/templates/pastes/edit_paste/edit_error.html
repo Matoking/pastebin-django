@@ -17,6 +17,12 @@
 				{% elif reason == "not_owner" %}
 				<strong>Not permitted</strong><br>
 				You can't edit a paste you didn't upload yourself.
+				{% elif reason == "removed" %}
+				<strong>Paste removed</strong><br>
+				This paste has been removed and can no longer be edited.
+				{% elif reason == "expired" %}
+				<strong>Paste expired</strong><br>
+				This paste has expired and can no longer be edited.
 				{% endif %}
 			</div>
 		</div>

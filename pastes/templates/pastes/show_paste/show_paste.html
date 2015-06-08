@@ -29,7 +29,12 @@
 			<br>
 			<div class="panel panel-info">
 				<div class="panel-heading">
-					<h1 class="panel-title">{% if paste.encrypted %}<span class="glyphicon glyphicon-lock"></span> {% endif %}{{ paste_version.title }}</h1>
+					<h1 class="panel-title">
+						{% if paste.encrypted %}<span class="glyphicon glyphicon-lock"></span> {% endif %}
+						{% if paste.hidden %}<span class="glyphicon glyphicon-eye-close"></span> {% endif %}
+						{% if paste.expiration_datetime %}<span class="glyphicon glyphicon-time"></span> {% endif %}
+						{{ paste_version.title }}
+					</h1>
 				</div>
 				<div class="panel-body">
 					<div class="row">

@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.utils.html import escape
 
 from pastebin.testcase import CacheAwareTestCase
+from pastebin import settings
 
 from freezegun import freeze_time
 
@@ -85,6 +86,43 @@ class PasteTests(CacheAwareTestCase):
         # We should be redirected back to the front page on failure
         self.assertContains(response, "Upload a new paste")
         self.assertContains(response, escape("The paste can't be empty."))
+        
+    def test_guest_can_upload_max_amount_of_pastes(self):
+        """
+        Upload as many pastes as possible as a guest and then try uploading one more
+        """
+        settings.MAX_PASTE_UPLOADS_PER_GUEST = 5
+        guest_uploads = 5
+        
+        for i in range(0, guest_uploads):
+            response = self.client.post(reverse("home:home"), { "title": "Paste test title",
+                                                                "text": "This is a test.",
+                                                                "syntax_highlighting": "text",
+                                                                "expiration": "never",
+                                                                "visibility": "public"},
+                                        follow=True)
+            
+            self.assertNotContains(response, "You can only upload")
+            
+        response = self.client.post(reverse("home:home"), { "title": "Paste test title",
+                                                            "text": "This is a test.",
+                                                            "syntax_highlighting": "text",
+                                                            "expiration": "never",
+                                                            "visibility": "public"},
+                                        follow=True)
+        
+        self.assertContains(response, "You can only upload")
+        
+        settings.MAX_PASTE_UPLOADS_PER_GUEST = -1
+        
+        response = self.client.post(reverse("home:home"), { "title": "Paste test title",
+                                                            "text": "This is a test.",
+                                                            "syntax_highlighting": "text",
+                                                            "expiration": "never",
+                                                            "visibility": "public"},
+                                        follow=True)
+        
+        self.assertNotContains(response, "You can only upload")
         
     def test_expiring_paste_expires_correctly(self):
         """

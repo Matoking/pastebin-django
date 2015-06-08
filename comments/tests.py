@@ -1,4 +1,5 @@
 from pastebin.testcase import CacheAwareTestCase
+from pastebin import settings
 
 from pastes.models import Paste
 
@@ -62,6 +63,39 @@ class CommentTests(CacheAwareTestCase):
         self.assertEqual(response["status"], "success")
         self.assertEqual(len(response["data"]["comments"]), 1)
         self.assertEqual(response["data"]["comments"][0]["text"], "This is a test comment")
+        
+    def test_user_can_post_max_amount_of_comments(self):
+        """
+        Post many comments until the limit is reached, and then try posting one more comment
+        """
+        create_test_account(self)
+        login_test_account(self)
+        char_id = upload_test_paste(self)
+        
+        settings.MAX_COMMENTS_PER_USER = 5
+        user_comments = 5
+        
+        for i in range(0, user_comments):
+            response = self.client.post(reverse("comments:add_comment"), {"char_id": char_id,
+                                                                          "text": "This is a test comment"})
+            response = json.loads(response.content)
+            
+            self.assertEqual(response["status"], "success")
+            
+        response = self.client.post(reverse("comments:add_comment"), {"char_id": char_id,
+                                                                      "text": "This is a test comment"})
+        response = json.loads(response.content)
+        
+        self.assertEqual(response["status"], "fail")
+        self.assertIn("You can only post", response["data"]["message"])
+        
+        settings.MAX_COMMENTS_PER_USER = -1
+        
+        response = self.client.post(reverse("comments:add_comment"), {"char_id": char_id,
+                                                                      "text": "This is a test comment"})
+        response = json.loads(response.content)
+        
+        self.assertEqual(response["status"], "success")
         
     def test_comment_can_be_edited(self):
         """

@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
+from pastebin import settings
 from pastebin.testcase import CacheAwareTestCase
 
 from pastes.models import Paste
@@ -102,6 +103,94 @@ class UserTests(CacheAwareTestCase):
         
         self.assertContains(response, "Remove")
         self.assertContains(response, "Edit")
+        
+    def test_user_can_upload_max_amount_of_pastes(self):
+        """
+        Upload as many pastes as allowed by settings and then try uploading one more paste
+        """
+        create_test_account(self)
+        login_test_account(self)
+        
+        settings.MAX_PASTE_UPLOADS_PER_USER = 5
+        user_uploads = 5
+        
+        for i in range(0, user_uploads):
+            response = self.client.post(reverse("home:home"), { "title": "Paste test title",
+                                                                "text": "This is a test.",
+                                                                "syntax_highlighting": "text",
+                                                                "expiration": "never",
+                                                                "visibility": "public"},
+                                        follow=True)
+            
+            self.assertNotContains(response, "You can only upload")
+            
+        response = self.client.post(reverse("home:home"), { "title": "Paste test title",
+                                                            "text": "This is a test.",
+                                                            "syntax_highlighting": "text",
+                                                            "expiration": "never",
+                                                            "visibility": "public"},
+                                        follow=True)
+        
+        self.assertContains(response, "You can only upload")
+        
+        settings.MAX_PASTE_UPLOADS_PER_USER = -1
+        
+        response = self.client.post(reverse("home:home"), { "title": "Paste test title",
+                                                            "text": "This is a test.",
+                                                            "syntax_highlighting": "text",
+                                                            "expiration": "never",
+                                                            "visibility": "public"},
+                                        follow=True)
+        
+        self.assertNotContains(response, "You can only upload")
+        
+    def test_user_can_edit_max_amount_of_times(self):
+        """
+        Upload a paste and edit it until the limit is reached and then try editing it again
+        """
+        create_test_account(self)
+        login_test_account(self)
+        
+        settings.MAX_PASTE_EDITS_PER_USER = 5
+        user_edits = 5
+        
+        char_id = upload_test_paste(self)
+        
+        for i in range(0, 5):
+            response = self.client.post(reverse("pastes:edit_paste", kwargs={"char_id": char_id}),
+                                                                            {"title": "New paste title",
+                                                                             "text": "This is the new text",
+                                                                             "syntax_highlighting": "text",
+                                                                             "expiration": "never",
+                                                                             "visibility": "public",
+                                                                             "note": "Testing update note"},
+                                               follow=True)
+            
+            self.assertNotContains(response, "You can only edit")
+            
+        response = self.client.post(reverse("pastes:edit_paste", kwargs={"char_id": char_id}),
+                                                                        {"title": "New paste title",
+                                                                         "text": "This is the new text",
+                                                                         "syntax_highlighting": "text",
+                                                                         "expiration": "never",
+                                                                         "visibility": "public",
+                                                                         "note": "Testing update note"},
+                                               follow=True)
+        
+        self.assertContains(response, "You can only edit")
+        
+        settings.MAX_PASTE_EDITS_PER_USER = -1
+        
+        response = self.client.post(reverse("pastes:edit_paste", kwargs={"char_id": char_id}),
+                                                                        {"title": "New paste title",
+                                                                         "text": "This is the new text",
+                                                                         "syntax_highlighting": "text",
+                                                                         "expiration": "never",
+                                                                         "visibility": "public",
+                                                                         "note": "Testing update note"},
+                                               follow=True)
+        
+        self.assertNotContains(response, "You can only edit")
         
     def test_user_can_edit_paste(self):
         """

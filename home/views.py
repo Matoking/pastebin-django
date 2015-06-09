@@ -90,6 +90,9 @@ def latest_pastes(request, page=1):
                                                                 "total_pages": total_pages,
                                                                 "total_paste_count": total_paste_count})
     
+def faq(request):
+    return render(request, "home/faq.html")
+    
 def random_paste(request):
     """
     Redirect to a random paste

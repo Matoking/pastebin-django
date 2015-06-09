@@ -9,6 +9,7 @@
 	    	<ul class="nav navbar-nav">
 		        <li><a href="{% url 'home:home' %}">Home</a></li>
 		        <li class="{% ancestor "latest_pastes" %}"><a href="{% url 'latest_pastes' %}">Latest pastes</a>
+		        <li class="{% ancestor "faq" %}"><a href="{% url 'faq' %}">FAQ</a>
 		        <li><a href="{% url 'random_paste' %}">Random</a></li>
 		    </ul>
             <ul class="nav navbar-nav navbar-right">

@@ -1,13 +1,14 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.utils.html import escape
+from django.contrib.auth.models import User
 
 from pastebin.testcase import CacheAwareTestCase
 from pastebin import settings
 
 from freezegun import freeze_time
 
-from pastes.models import Paste
+from pastes.models import Paste, PasteReport, PasteContent
 
 def create_test_account(test_case, username="TestUser"):
     """
@@ -36,8 +37,11 @@ def upload_test_paste(test_case, username="TestUser"):
     """
     paste = Paste()
     
-    test_user = User.objects.get(username=username)
-    
+    if username != None:
+        test_user = User.objects.get(username=username)
+    else:
+        test_user = None
+        
     return paste.add_paste(user=test_user,
                            text="This is the test paste.",
                            title="Test paste")
@@ -166,3 +170,109 @@ class PasteTests(CacheAwareTestCase):
         response = self.client.get(reverse("show_paste", kwargs={"char_id": "420BlzIt"}))
         
         self.assertContains(response, "Paste not found", status_code=404)
+        
+class PasteAdminTests(CacheAwareTestCase):
+    def test_report_ignored_correctly(self):
+        """
+        Submit a paste report and ignore it
+        """
+        create_test_account(self)
+        login_test_account(self)
+        
+        paste = upload_test_paste(self)
+        
+        user = User.objects.get(username="TestUser")
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+        
+        response = self.client.post(reverse("pastes:report_paste", kwargs={"char_id": paste}),
+                                                                          {"text": "This is a report for the first paste",
+                                                                           "reason": "illegal_content"})
+        
+        self.assertContains(response, "The paste report was sent successfully")
+        
+        report_id = PasteReport.objects.get(type="illegal_content").id
+        
+        response = self.client.post(reverse("admin:pastes_pastereport_process_report", kwargs={"report_ids": report_id}))
+        
+        self.assertContains(response, "TestUser -> Test paste")
+        self.assertContains(response, "This is a report for the first paste")
+        
+        self.assertContains(response, "This is the test paste")
+        
+        response = self.client.post(reverse("admin:pastes_pastereport_process_report", kwargs={"report_ids": report_id}),
+                                                                                              {"ignore": "true",
+                                                                                               "removal_reason": ""})
+        
+        self.assertContains(response, "The reports were marked as checked")
+        
+    def test_report_removed_correctly(self):
+        """
+        Submit a paste report and remove the offending paste
+        """
+        create_test_account(self)
+        login_test_account(self)
+        
+        paste = upload_test_paste(self)
+        
+        user = User.objects.get(username="TestUser")
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+        
+        response = self.client.post(reverse("pastes:report_paste", kwargs={"char_id": paste}),
+                                                                          {"text": "This is a report for the first paste",
+                                                                           "reason": "illegal_content"})
+        
+        report_id = PasteReport.objects.get(type="illegal_content").id
+        
+        response = self.client.post(reverse("admin:pastes_pastereport_process_report", kwargs={"report_ids": report_id}),
+                                                                                              {"remove": "true",
+                                                                                               "removal_reason": "This paste is illegal you know"})
+        
+        self.assertContains(response, "The paste(s) were removed.")
+        
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": paste}))
+        
+        self.assertContains(response, "This paste is illegal you know", status_code=404)
+        
+        # The paste content should still exist
+        paste_content = PasteContent.objects.get(hash="81e7fd17afe49f1ebdfbcec983c12377e63b90982eb2e50288a3f3b3b65a06cf",
+                                                 format="none")
+        
+        self.assertEquals(paste_content.text, "This is the test paste.")
+        
+    def test_report_deleted_correctly(self):
+        """
+        Submit a paste report and remove the offending paste
+        """
+        create_test_account(self)
+        login_test_account(self)
+        
+        paste = upload_test_paste(self)
+        
+        user = User.objects.get(username="TestUser")
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+        
+        response = self.client.post(reverse("pastes:report_paste", kwargs={"char_id": paste}),
+                                                                          {"text": "This is a report for the first paste",
+                                                                           "reason": "illegal_content"})
+        
+        report_id = PasteReport.objects.get(type="illegal_content").id
+        
+        response = self.client.post(reverse("admin:pastes_pastereport_process_report", kwargs={"report_ids": report_id}),
+                                                                                              {"delete": "true",
+                                                                                               "removal_reason": "This paste is illegal you know"})
+        
+        self.assertContains(response, "The paste(s) were deleted permanently")
+        
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": paste}))
+        
+        self.assertContains(response, "This paste is illegal you know", status_code=404)
+        
+        # The paste content should've been removed as well
+        self.assertEquals(PasteContent.objects.filter(hash="81e7fd17afe49f1ebdfbcec983c12377e63b90982eb2e50288a3f3b3b65a06cf",
+                                                      format="none").exists(), False)

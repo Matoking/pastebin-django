@@ -11,7 +11,7 @@ class PasteAdmin(admin.ModelAdmin):
     list_display = ("title", "user", "submitted")
     
 class PasteReportAdmin(admin.ModelAdmin):
-    list_display = ("checked", "user", "paste", "text")
+    list_display = ("checked", "user", "paste", "text", "type")
     actions = ["mark_report_as_read", "process_reports"]
     ordering = ("checked",)
     

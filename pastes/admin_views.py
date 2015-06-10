@@ -12,6 +12,9 @@ def process_report(request, report_ids):
     """
     Process a report for a paste
     """
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return HttpResponse("You are not an admin!", status=422)
+    
     reports = PasteReport.objects.filter(id__in=report_ids.split(","))
     
     pastes = None

@@ -4,9 +4,9 @@
 {% if action == "ignore" %}
 <p>The reports were marked as checked and ignored.</p>
 {% elif action == "remove" %}
-<p>The paste was removed.</p>
+<p>The paste(s) were removed.</p>
 {% elif action == "delete" %}
-<p>The paste was deleted permanently.</p>
+<p>The paste(s) were deleted permanently.</p>
 {% endif %}
 <br>
 <a class="default" href="{% url "admin:pastes_pastereport_changelist" %}">Go back to report list</a>

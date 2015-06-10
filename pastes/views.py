@@ -136,7 +136,12 @@ def paste_history(request, char_id, page=1):
     start = offset
     end = offset + VERSIONS_PER_PAGE
     
-    history = PasteVersion.objects.filter(paste=paste).order_by("-submitted")[start:end]
+    history = cache.get("paste_history:%s:%s" % (char_id, page))
+    
+    if history == None:
+        history = PasteVersion.objects.filter(paste=paste).order_by("-submitted")[start:end]
+        cache.set("paste_history:%s:%s" % (char_id, page), history)
+        
     pages = Paginator.get_pages(page, VERSIONS_PER_PAGE, total_version_count)
     
     return render(request, "pastes/paste_history/paste_history.html", {"paste": paste,
@@ -327,11 +332,19 @@ def change_paste_favorite(request):
             favorite.save()
             cache.set("paste_favorited:%s:%s" % (request.user.username, char_id), True)
             
+            # Update/clear related cache entries
+            con = get_redis_connection()
+            pip.delete("user_favorite_count:%s" % request.user.username)
+            
             response["data"]["char_id"] = char_id
             response["data"]["favorited"] = True
         elif action == "remove":
             result = Favorite.objects.filter(user=request.user, paste__char_id=char_id).delete()
             cache.set("paste_favorited:%s:%s" % (request.user.username, char_id), False)
+            
+            # Update/clear related cache entries
+            con = get_redis_connection()
+            pip.delete("user_favorite_count:%s" % request.user.username)
             
             response["data"]["char_id"] = char_id
             response["data"]["favorited"] = False

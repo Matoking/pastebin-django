@@ -326,6 +326,7 @@ class Paste(models.Model):
                                        format=self.format)
             new_version.save()
             cache.set("paste_version:%s:%s" % (self.char_id, self.version), new_version)
+            cache.delete("paste_history:%s:1" % (self.char_id))
     
     def remove_paste(self, type=ADMIN_REMOVAL, reason=""):
         """
@@ -366,7 +367,7 @@ class Paste(models.Model):
             hash = self.hash
             
             # If another paste has the same content, don't delete the actual paste content
-            if Paste.objects.filter(hash=self.hash, format="none").count() == 1:
+            if Paste.objects.filter(hash=self.hash).count() == 1:
                 PasteContent.objects.filter(hash=self.hash).delete()
                 
             self.hash = "N/A"

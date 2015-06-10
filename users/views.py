@@ -6,6 +6,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache
 from django.http import HttpResponse, HttpResponseRedirect
 
+from django_redis import get_redis_connection
+
 from users.models import PastebinUser
 
 from users.forms import RegisterForm, LoginForm, ChangePasswordForm, VerifyPasswordForm
@@ -249,10 +251,16 @@ def remove_favorite(request):
     
     favorite = Favorite.objects.get(id=favorite_id)
     
+    if not request.user.is_authenticated():
+        return HttpResponse("You are not authenticated", status=422)
+    
     if favorite.user != request.user:
         return HttpResponse("You can't delete someone else's favorites.", status=422)
     
     favorite.delete()
+    
+    cache.delete("profile_favorites:%s" % request.user.username)
+    cache.delete("user_favorite_count:%s" % request.user.username)
     
     return HttpResponseRedirect(reverse("users:favorites", kwargs={"username": request.user.username,
                                                                    "page": page}))

@@ -6,10 +6,13 @@ from pastebin import settings
 from pastebin.testcase import CacheAwareTestCase
 
 from pastes.models import Paste
+from users.models import Favorite
 
 from freezegun import freeze_time
 
 from django.utils.html import escape
+
+import json
 
 def create_test_account(test_case, username="TestUser"):
     """
@@ -405,3 +408,69 @@ class UserTests(CacheAwareTestCase):
         response = self.client.get(reverse("users:profile", kwargs={"username": "TestUser"}))
         
         self.assertContains(response, "User not found", status_code=404)
+        
+    def test_user_can_favorite_paste(self):
+        """
+        Favorite a paste and unfavorite the paste and check that the correct action is displayed each time
+        """
+        create_test_account(self)
+        login_test_account(self)
+        
+        paste = upload_test_paste(self)
+        
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": paste}))
+        
+        self.assertContains(response, "Add to favorites")
+        
+        response = self.client.post(reverse("pastes:change_paste_favorite"), {"char_id": paste,
+                                                                              "action": "add"})
+        response = json.loads(response.content)
+        
+        self.assertEquals(response["status"], "success")
+        self.assertEquals(response["data"]["char_id"], paste)
+        self.assertEquals(response["data"]["favorited"], True)
+        
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": paste}))
+        
+        self.assertContains(response, "Remove from favorites")
+        
+        response = self.client.post(reverse("pastes:change_paste_favorite"), {"char_id": paste,
+                                                                              "action": "remove"})
+        response = json.loads(response.content)
+        
+        self.assertEquals(response["status"], "success")
+        self.assertEquals(response["data"]["char_id"], paste)
+        self.assertEquals(response["data"]["favorited"], False)
+        
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": paste}))
+        
+        self.assertContains(response, "Add to favorites")
+        
+    def test_user_cant_favorite_paste_multiple_times(self):
+        """
+        Try favoriting a paste multiple times
+        """
+        create_test_account(self)
+        login_test_account(self)
+        
+        paste = upload_test_paste(self)
+        
+        self.assertEquals(Favorite.objects.filter(user=User.objects.get(username="TestUser"), paste=Paste.objects.get(char_id=paste)).count(), 0)
+        
+        response = self.client.post(reverse("pastes:change_paste_favorite"), {"char_id": paste,
+                                                                              "action": "add"})
+        response = json.loads(response.content)
+        
+        self.assertEquals(response["status"], "success")
+        self.assertEquals(response["data"]["char_id"], paste)
+        self.assertEquals(response["data"]["favorited"], True)
+        
+        self.assertEquals(Favorite.objects.filter(user=User.objects.get(username="TestUser"), paste=Paste.objects.get(char_id=paste)).count(), 1)
+        
+        response = self.client.post(reverse("pastes:change_paste_favorite"), {"char_id": paste,
+                                                                              "action": "add"})
+        response = json.loads(response.content)
+        
+        self.assertEquals(response["status"], "fail")
+        
+        self.assertEquals(Favorite.objects.filter(user=User.objects.get(username="TestUser"), paste=Paste.objects.get(char_id=paste)).count(), 1)

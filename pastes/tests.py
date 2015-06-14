@@ -31,7 +31,7 @@ def logout(test_case):
     """
     test_case.client.post(reverse("users:logout"))
     
-def upload_test_paste(test_case, username="TestUser"):
+def upload_test_paste(test_case, username="TestUser", text="This is the test paste."):
     """
     Upload a test paste
     """
@@ -43,7 +43,7 @@ def upload_test_paste(test_case, username="TestUser"):
         test_user = None
         
     return paste.add_paste(user=test_user,
-                           text="This is the test paste.",
+                           text=text,
                            title="Test paste")
 
 @freeze_time("2015-01-01")
@@ -276,3 +276,53 @@ class PasteAdminTests(CacheAwareTestCase):
         # The paste content should've been removed as well
         self.assertEquals(PasteContent.objects.filter(hash="81e7fd17afe49f1ebdfbcec983c12377e63b90982eb2e50288a3f3b3b65a06cf",
                                                       format="none").exists(), False)
+        
+    def test_multiple_reports_handled_correctly(self):
+        """
+        Submit two pastes and two reports and remove them simultaneously
+        """
+        create_test_account(self)
+        login_test_account(self)
+        
+        paste_one = upload_test_paste(self, username=None)
+        
+        paste_two = upload_test_paste(self, text="This is the second test paste.")
+        
+        user = User.objects.get(username="TestUser")
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+        
+        self.client.post(reverse("pastes:report_paste", kwargs={"char_id": paste_one}),
+                                                               {"text": "This is a report for the first paste",
+                                                                "reason": "illegal_content"})
+        
+        report_one_id = PasteReport.objects.get(type="illegal_content").id
+        
+        self.client.post(reverse("pastes:report_paste", kwargs={"char_id": paste_two}),
+                                                               {"text": "This is a report for the second paste",
+                                                                "reason": "spam"})
+        
+        report_two_id = PasteReport.objects.get(type="spam").id
+        
+        response = self.client.post(reverse("admin:pastes_pastereport_process_report", kwargs={"report_ids": "%d,%d" % (report_one_id, report_two_id)}))
+        
+        self.assertContains(response, "This is a report for the first paste")
+        self.assertContains(response, "This is a report for the second paste")
+               
+        self.assertContains(response, "This is the test paste.")
+        self.assertContains(response, "This is the second test paste.")
+        
+        response = self.client.post(reverse("admin:pastes_pastereport_process_report", kwargs={"report_ids": "%d,%d" % (report_one_id, report_two_id)}),
+                                                                                              {"remove": "true",
+                                                                                               "removal_reason": "Both are deleted"})
+
+        self.assertContains(response, "The paste(s) were removed.")
+        
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": paste_one}))
+        
+        self.assertContains(response, "Both are deleted", status_code=404)
+
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": paste_two}))
+        
+        self.assertContains(response, "Both are deleted", status_code=404)

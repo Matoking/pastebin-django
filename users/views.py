@@ -185,10 +185,7 @@ def pastes(request, user, args, page=1):
     args["total_pages"] = math.ceil(float(args["total_paste_count"]) / float(PASTES_PER_PAGE))
     
     if page > args["total_pages"]:
-        page = args["total_pages"]
-        
-    if page == 0:
-        page = 1
+        page = max(int(args["total_pages"]), 1)
     
     offset = (page-1) * PASTES_PER_PAGE
     
@@ -206,6 +203,7 @@ def pastes(request, user, args, page=1):
             cache.set("user_public_pastes:%s:%s" % (user.username, page), args["pastes"])
         
     args["pages"] = Paginator.get_pages(page, PASTES_PER_PAGE, args["total_paste_count"])
+    args["current_page"] = page
     
     return render(request, "users/profile/pastes/pastes.html", args)
     
@@ -218,10 +216,7 @@ def favorites(request, user, args, page=1):
     args["total_pages"] = math.ceil(float(args["total_favorite_count"]) / float(FAVORITES_PER_PAGE))
     
     if page > args["total_pages"]:
-        page = args["total_pages"]
-        
-    if page == 0:
-        page = 1
+        page = max(int(args["total_pages"]), 1)
         
     start = (page-1) * FAVORITES_PER_PAGE
     end = start + FAVORITES_PER_PAGE
@@ -233,6 +228,7 @@ def favorites(request, user, args, page=1):
         cache.set("user_favorites:%s:%s" % (user.username, page), args["favorites"])
         
     args["pages"] = Paginator.get_pages(page, FAVORITES_PER_PAGE, args["total_favorite_count"])
+    args["current_page"] = page
     
     return render(request, "users/profile/favorites/favorites.html", args)
 

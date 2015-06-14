@@ -3,6 +3,8 @@ from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache
 
+from django_redis import get_redis_connection
+
 from pastes.forms import SubmitPasteForm, EditPasteForm, RemovePasteForm, ReportPasteForm
 from pastes.models import Paste, PasteReport, PasteVersion
 
@@ -129,7 +131,7 @@ def paste_history(request, char_id, page=1):
     total_pages = math.ceil(float(total_version_count) / float(VERSIONS_PER_PAGE))
     
     if page > total_pages:
-        page = total_pages
+        page = max(int(total_pages), 1)
         
     offset = (page-1) * VERSIONS_PER_PAGE
     
@@ -328,13 +330,18 @@ def change_paste_favorite(request):
             return HttpResponse(json.dumps(response))
         
         if action == "add":
+            if Favorite.objects.filter(user=request.user, paste=Paste.objects.get(char_id=char_id)).exists():
+                response["status"] = "fail"
+                response["data"]["message"] = "You can't favorite a paste multiple times"
+                return HttpResponse(json.dumps(response))
+            
             favorite = Favorite(user=request.user, paste=Paste.objects.get(char_id=char_id))
             favorite.save()
             cache.set("paste_favorited:%s:%s" % (request.user.username, char_id), True)
             
             # Update/clear related cache entries
             con = get_redis_connection()
-            pip.delete("user_favorite_count:%s" % request.user.username)
+            con.delete("user_favorite_count:%s" % request.user.username)
             
             response["data"]["char_id"] = char_id
             response["data"]["favorited"] = True
@@ -344,7 +351,7 @@ def change_paste_favorite(request):
             
             # Update/clear related cache entries
             con = get_redis_connection()
-            pip.delete("user_favorite_count:%s" % request.user.username)
+            con.delete("user_favorite_count:%s" % request.user.username)
             
             response["data"]["char_id"] = char_id
             response["data"]["favorited"] = False

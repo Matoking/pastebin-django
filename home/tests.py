@@ -38,6 +38,68 @@ class LatestPastesTests(CacheAwareTestCase):
         self.assertContains(response, "Paste")
         self.assertContains(response, "Paste 2")
         
+    def test_latest_pastes_shows_correct_pastes(self):
+        """
+        Upload hidden and expiring paste and make sure hidden and expiring pastes
+        aren't shown when they shouldn't be shown
+        """
+        with freeze_time("2015-01-01 12:00:00"):
+            for i in range(0, 5):
+                self.client.post(reverse("home:home"), {"title": "Normal paste %d" % i,
+                                                        "text": "This is a test.",
+                                                        "syntax_highlighting": "text",
+                                                        "expiration": "never",
+                                                        "visibility": "public"},
+                                                        follow=True)
+                
+            for i in range(0, 5):
+                self.client.post(reverse("home:home"), {"title": "Expiring paste %d" % i,
+                                                        "text": "This is a test",
+                                                        "syntax_highlighting": "text",
+                                                        "expiration": "1h",
+                                                        "visibility": "public"},
+                                                        follow=True)
+                
+            self.client.post(reverse("home:home"), {"title": "Hidden paste",
+                                                    "text": "This is a test",
+                                                    "syntax_highlighting": "text",
+                                                    "expiration": "1h",
+                                                    "visibility": "hidden"},
+                                                    follow=True)
+            
+            response = self.client.get(reverse("latest_pastes"))
+            
+            self.assertContains(response, "Normal paste", count=5)
+            self.assertContains(response, "Expiring paste", count=5)
+            self.assertNotContains(response, "Hidden paste")
+            
+        with freeze_time("2015-01-01 13:00:01"):
+            self.clearCache()
+            
+            response = self.client.get(reverse("latest_pastes"))
+            
+            self.assertContains(response, "Normal paste", count=5)
+            self.assertNotContains(response, "Expiring paste")
+            self.assertNotContains(response, "Hidden paste")
+            
+    def test_latest_pastes_redirects_to_last_page(self):
+        """
+        Try checking a page of latest pastes which doesn't exist
+        User should be redirected to the last page
+        """
+        self.client.post(reverse("home:home"), {"title": "Test paste",
+                                                "text": "This is a test.",
+                                                "syntax_highlighting": "text",
+                                                "expiration": "never",
+                                                "visibility": "public"},
+                                                follow=True)
+        
+        response = self.client.get(reverse("latest_pastes", kwargs={"page": 2}))
+        
+        self.assertContains(response, "Test paste")
+        self.assertContains(response, "1</span>")
+        self.assertNotContains(response, "2</span>")
+        
     def test_latest_pastes_doesnt_show_hidden_pastes(self):
         """
         Upload a hidden paste and check that it isn't visible in the latest pastes

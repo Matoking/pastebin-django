@@ -371,6 +371,42 @@ class UserTests(CacheAwareTestCase):
         self.assertContains(response, "Test paste")
         self.assertNotContains(response, escape("You haven't uploaded any pastes yet."))
         
+    def test_user_pastes_redirects_to_last_page_correctly(self):
+        """
+        Upload a paste and try viewing page 2 of user's pastes, which should redirect to
+        page 1
+        """
+        create_test_account(self)
+        login_test_account(self)
+        upload_test_paste(self)
+        
+        response = self.client.get(reverse("users:pastes", kwargs={"username": "TestUser",
+                                                                   "page": 2}))
+        
+        self.assertContains(response, "Test paste")
+        self.assertContains(response, "1</span>")
+        self.assertNotContains(response, "2</span>")
+        
+    def test_user_favorites_redirects_to_last_page_correctly(self):
+        """
+        Upload a paste, favorite it and try viewing page 2 of user's favorites, which should
+        redirect to page 1
+        """
+        create_test_account(self)
+        login_test_account(self)
+        paste = upload_test_paste(self)
+        
+        
+        self.client.post(reverse("pastes:change_paste_favorite"), {"char_id": paste,
+                                                                   "action": "add"})
+        
+        response = self.client.get(reverse("users:favorites", kwargs={"username": "TestUser",
+                                                                      "page": 2}))
+        
+        self.assertContains(response, "Test paste")
+        self.assertContains(response, "1</span>")
+        self.assertNotContains(response, "2</span>")
+        
     def test_user_can_change_password(self):
         """
         Change user's password and login again with the new password

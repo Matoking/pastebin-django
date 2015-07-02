@@ -133,8 +133,11 @@ def profile(request, username, tab="home", page=1):
         return pastes(request, profile_user, args, page)
     elif tab == "favorites":
         return favorites(request, profile_user, args, page)
+    # The remaining pages require authentication, so redirect through settings()
+    else:
+        return settings(request, profile_user, args, tab)
     
-def settings(request, username, tab="change_password"):
+def settings(request, username, args={}, tab="change_password"):
     """
     Show a page which allows the user to change his settings
     """
@@ -147,9 +150,9 @@ def settings(request, username, tab="change_password"):
         return render(request, "users/settings/settings_error.html", {"reason": "incorrect_user"})
     
     if tab == "change_password":
-        return change_password(request)
+        return change_password(request, args)
     elif tab == "delete_account":
-        return delete_account(request)
+        return delete_account(request, args)
     
 def home(request, args):
     """
@@ -261,7 +264,7 @@ def remove_favorite(request):
     return HttpResponseRedirect(reverse("users:favorites", kwargs={"username": request.user.username,
                                                                    "page": page}))
 
-def change_password(request):
+def change_password(request, args):
     """
     Change the user's password
     """
@@ -281,13 +284,12 @@ def change_password(request):
         
         password_changed = True
         
-    return render(request, "users/settings/change_password/change_password.html", {"profile_user": request.user,
-                                                                                   "form": form,
-                                                                                   
-                                                                                   "tab": "change_password",
-                                                                                   "password_changed": password_changed})
+    args["form"] = form
+    args["password_changed"] = password_changed
+        
+    return render(request, "users/settings/change_password/change_password.html", args)
 
-def delete_account(request):
+def delete_account(request, args):
     """
     Delete the user's account
     """
@@ -299,7 +301,6 @@ def delete_account(request):
         
         return render(request, "users/settings/delete_account/account_deleted.html")
     
-    return render(request, "users/settings/delete_account/delete_account.html", {"profile_user": request.user,
-                                                                                 "form": form,
-                                                                                 
-                                                                                 "tab": "delete_account"})
+    args["form"] = form
+    
+    return render(request, "users/settings/delete_account/delete_account.html", args)

@@ -441,6 +441,8 @@ class UserTests(CacheAwareTestCase):
         
         self.assertContains(response, "Your account has been deleted.")
         
+        self.clearCache()
+        
         response = self.client.get(reverse("users:profile", kwargs={"username": "TestUser"}))
         
         self.assertContains(response, "User not found", status_code=404)

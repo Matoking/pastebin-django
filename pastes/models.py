@@ -264,13 +264,10 @@ class Paste(models.Model):
             self.save()
             
             # Save the paste content both as raw text and with formatting
-            unformatted = PasteContent()
-            formatted = PasteContent()
-            
-            unformatted.add_paste_text(text, None)
+            PasteContent.add_paste_text(text, None)
             
             if not encrypted:
-                formatted.add_paste_text(text, format)
+                PasteContent.add_paste_text(text, format)
                 
             first_version = PasteVersion(paste=self,
                                          version=1,
@@ -310,13 +307,10 @@ class Paste(models.Model):
             self.save()
             
             # Save the new paste content both as raw text and with formatting
-            unformatted = PasteContent()
-            formatted = PasteContent()
-            
-            unformatted.add_paste_text(text, None)
+            PasteContent.add_paste_text(text, None)
             
             if not encrypted:
-                formatted.add_paste_text(text, format)
+                PasteContent.add_paste_text(text, format)
             
             new_version = PasteVersion(paste=self,
                                        version=self.version,
@@ -445,7 +439,8 @@ class PasteContent(models.Model):
     format = models.CharField(max_length=32)
     text = models.TextField()
         
-    def add_paste_text(self, text, format=None):
+    @staticmethod
+    def add_paste_text(text, format=None):
         """
         Adds paste text if it hasn't been added yet
         

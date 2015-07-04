@@ -77,6 +77,7 @@ class Paste(models.Model):
     title = models.CharField(max_length=128)
     format = models.CharField(max_length=32)
     hash = models.CharField(max_length=64)
+    size = models.IntegerField()
     
     expiration_datetime = models.DateTimeField(null=True, blank=True)
     
@@ -236,6 +237,7 @@ class Paste(models.Model):
         
         self.title = title
         self.format = format
+        self.size = len(text)
         
         self.encrypted = encrypted
         
@@ -274,7 +276,8 @@ class Paste(models.Model):
                                          note="Uploaded",
                                          title=self.title,
                                          hash=self.hash,
-                                         format=self.format)
+                                         format=self.format,
+                                         size=self.size)
             first_version.save()
             cache.set("paste_version:%s:1" % (self.char_id), first_version)
             
@@ -297,6 +300,7 @@ class Paste(models.Model):
             
         self.title = title
         self.format = format
+        self.size = len(text)
             
         self.version += 1
         self.hash = hashlib.sha256(text.encode('utf-8')).hexdigest()
@@ -317,7 +321,8 @@ class Paste(models.Model):
                                        note=note,
                                        title=self.title,
                                        hash=self.hash,
-                                       format=self.format)
+                                       format=self.format,
+                                       size=self.size)
             new_version.save()
             cache.set("paste_version:%s:%s" % (self.char_id, self.version), new_version)
             cache.delete("paste_history:%s:1" % (self.char_id))
@@ -428,6 +433,7 @@ class PasteVersion(models.Model):
     title = models.CharField(max_length=128)
     hash = models.CharField(max_length=64)
     format = models.CharField(max_length=64)
+    size = models.IntegerField()
     
     submitted = models.DateTimeField(auto_now_add=True)
     

@@ -171,6 +171,21 @@ class PasteTests(CacheAwareTestCase):
         
         self.assertContains(response, "Paste not found", status_code=404)
         
+    def test_paste_size_shown_correctly(self):
+        """
+        Submit a paste with a size of 8 bytes and check that it's shown correctly
+        """
+        response = self.client.post(reverse("home:home"), { "title": "Paste test title",
+                                                            "text": "aaaaaaaa",
+                                                            "syntax_highlighting": "text",
+                                                            "expiration": "never",
+                                                            "visibility": "public"},
+                                    follow=True)
+        
+        # filesizeformat template tag uses a non-breakable space, thus the more verbose
+        # check
+        self.assertContains(response, '8\xc2\xa0bytes')
+        
 class PasteAdminTests(CacheAwareTestCase):
     def test_report_ignored_correctly(self):
         """

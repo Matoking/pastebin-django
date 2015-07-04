@@ -45,6 +45,7 @@
 							<p><b>UPDATED:</b> {{ paste.updated }}</p>
 							{% endif %}
 							<p><b>FORMAT:</b> {{ paste_version.format|syntax_format_to_text }}</p>
+							<p><b>SIZE: </b> {{ paste_version.size|filesizeformat }}</p>
 							{% if paste.expiration_datetime %}
 								{% with timesince_seconds=paste.expiration_datetime|timeuntil_in_seconds %}
 									<p><b style="color: red;">EXPIRES IN:</b> {% seconds_to_str timesince_seconds %}</p>

@@ -186,6 +186,32 @@ class PasteTests(CacheAwareTestCase):
         # check
         self.assertContains(response, '8\xc2\xa0bytes')
         
+    def test_formatted_pastes_saved_when_needed(self):
+        """
+        Upload a paste with STORE_FORMATTED_PASTE_CONTENT setting disabled and
+        then upload another paste with STORE_FORMATTED_PASTE_CONTENT setting enabled
+        and check the paste content isn't saved to the database in the first case
+        """
+        settings.STORE_FORMATTED_PASTE_CONTENT = False
+        
+        paste_one = upload_test_paste(self, None, "Test paste not stored")
+        paste_one = Paste.objects.get(char_id=paste_one)
+        
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": paste_one.char_id}))
+        
+        self.assertContains(response, "Test paste not stored")
+        self.assertEqual(PasteContent.objects.filter(hash=paste_one.hash).count(), 1)
+        
+        settings.STORE_FORMATTED_PASTE_CONTENT = True
+        
+        paste_two = upload_test_paste(self, None, "Test paste now stored")
+        paste_two = Paste.objects.get(char_id=paste_two)
+        
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": paste_two.char_id}))
+        
+        self.assertContains(response, "Test paste now stored")
+        self.assertEqual(PasteContent.objects.filter(hash=paste_two.hash).count(), 2)
+        
 class PasteAdminTests(CacheAwareTestCase):
     def test_report_ignored_correctly(self):
         """

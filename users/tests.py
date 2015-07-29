@@ -35,17 +35,21 @@ def logout(test_case):
     """
     test_case.client.post(reverse("users:logout"))
     
-def upload_test_paste(test_case, username="TestUser"):
+def upload_test_paste(test_case, username="TestUser", encrypted=False):
     """
     Upload a test paste
     """
     paste = Paste()
     
-    test_user = User.objects.get(username=username)
+    if username != None:
+        test_user = User.objects.get(username=username)
+    else:
+        test_user = None
     
     return paste.add_paste(user=test_user,
                            text="This is the test paste.",
-                           title="Test paste")
+                           title="Test paste",
+                           encrypted=encrypted)
 
 @freeze_time("2015-01-01")
 class UserTests(CacheAwareTestCase):
@@ -357,6 +361,44 @@ class UserTests(CacheAwareTestCase):
         
         self.assertContains(response, "PHP")
         self.assertContains(response, "Third version title")
+        
+    def test_encrypted_paste_versions_shown_correctly(self):
+        """
+        Upload an encrypted paste and then update that paste to not have encryption
+        Check that both versions are displayed correctly
+        """
+        create_test_account(self)
+        login_test_account(self)
+        
+        test_user = User.objects.get(username="TestUser")
+        
+        paste = Paste()
+        char_id = paste.add_paste(user=test_user,
+                                  text="This is the version one.",
+                                  title="Tested paste",
+                                  encrypted=True)
+        
+        self.client.post(reverse("pastes:edit_paste", kwargs={"char_id": char_id}),
+                                                             {"title": "Second version title",
+                                                              "text": "This is the version two",
+                                                              "syntax_highlighting": "python",
+                                                              "expiration": "never",
+                                                              "visibility": "public",
+                                                              "encrypted": False,
+                                                              "note": "Update two"},
+                                follow=True)
+        
+        # Test the first encrypted version
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": char_id,
+                                                                 "version": 1}))
+        
+        self.assertContains(response, "This paste is encrypted")
+        
+        # Test the second unencrypted version
+        response = self.client.get(reverse("show_paste", kwargs={"char_id": char_id,
+                                                                 "version": 2}))
+        
+        self.assertNotContains(response, "This paste is encrypted")
         
     def test_user_uploaded_paste_displayed_in_profile(self):
         """

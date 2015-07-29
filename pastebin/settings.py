@@ -54,6 +54,10 @@ MAX_COMMENTS_PERIOD = 1800 # 30 minutes
 
 MAX_COMMENTS_PER_USER = 20
 
+# If False, formatted paste content isn't saved to the database but is instead generated on-the-fly
+# and stored in cache
+STORE_FORMATTED_PASTE_CONTENT = False
+
 # Application definition
 
 INSTALLED_APPS = (

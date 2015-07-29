@@ -84,7 +84,7 @@
 				</div>
 			</div>
 			<hr>
-			{% if not paste.encrypted %}
+			{% if not paste_version.encrypted %}
 			{# PASTE NOT ENCRYPTED #}
 			{{ paste_text|safe }}
 			{% else %}

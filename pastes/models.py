@@ -8,6 +8,8 @@ from django.core.cache import cache
 from django_redis import get_redis_connection
 from django.utils import timezone
 
+from pastebin import settings
+
 from sql import cursor
 
 import highlighting
@@ -165,39 +167,27 @@ class Paste(models.Model):
         hash = None
         format = None
         
+        # Get paste version
         if version == None:
             hash = self.hash
             format = self.format
+            encrypted = self.encrypted
         else:
             paste_version = cache.get("paste_version:%s:%s" % (self.char_id, version))
             
             if paste_version == None:
                 paste_version = PasteVersion.objects.get(paste=self, version=version)
-                cache.set("paste_version:%s:%s" % (self.char_id, version), paste_version)
+                cache.set("paste_version:%s:%s" % (self.char_id, version), paste_version, None)
             
             hash = paste_version.hash
             format = paste_version.format
+            encrypted = paste_version.encrypted
+            
+        if not formatted:
+            format = None
         
-        if formatted and not self.encrypted:
-            cache_result = cache.get("paste_content:%s:%s:formatted_text" % (hash, format))
-            
-            if cache_result != None:
-                return cache_result
-            
-            paste_content = PasteContent.objects.get(hash=hash, format=format)
-            
-            cache.set("paste_content:%s:%s:formatted_text" % (hash, format), paste_content.text)
-        else:
-            cache_result = cache.get("paste_content:%s:text" % hash)
-            
-            if cache_result != None:
-                return cache_result
-            
-            paste_content = PasteContent.objects.get(hash=hash, format="none")
-            
-            cache.set("paste_content:%s:text" % hash, paste_content.text)
-       
-        return paste_content.text
+        # Get the paste text referenced in the retrieved paste version
+        return PasteContent.get_paste_text(hash, format, encrypted)
     
     def is_expired(self):
         """
@@ -268,7 +258,7 @@ class Paste(models.Model):
             # Save the paste content both as raw text and with formatting
             PasteContent.add_paste_text(text, None)
             
-            if not encrypted:
+            if not encrypted and settings.STORE_FORMATTED_PASTE_CONTENT:
                 PasteContent.add_paste_text(text, format)
                 
             first_version = PasteVersion(paste=self,
@@ -277,9 +267,10 @@ class Paste(models.Model):
                                          title=self.title,
                                          hash=self.hash,
                                          format=self.format,
+                                         encrypted=self.encrypted,
                                          size=self.size)
             first_version.save()
-            cache.set("paste_version:%s:1" % (self.char_id), first_version)
+            cache.set("paste_version:%s:1" % (self.char_id), first_version, None)
             
             if not self.encrypted and not self.hidden and self.expiration_datetime == None: 
                 con = get_redis_connection("persistent")
@@ -313,7 +304,7 @@ class Paste(models.Model):
             # Save the new paste content both as raw text and with formatting
             PasteContent.add_paste_text(text, None)
             
-            if not encrypted:
+            if not encrypted and settings.STORE_FORMATTED_PASTE_CONTENT:
                 PasteContent.add_paste_text(text, format)
             
             new_version = PasteVersion(paste=self,
@@ -322,6 +313,7 @@ class Paste(models.Model):
                                        title=self.title,
                                        hash=self.hash,
                                        format=self.format,
+                                       encrypted=self.encrypted,
                                        size=self.size)
             new_version.save()
             cache.set("paste_version:%s:%s" % (self.char_id, self.version), new_version)
@@ -435,6 +427,8 @@ class PasteVersion(models.Model):
     format = models.CharField(max_length=64)
     size = models.IntegerField()
     
+    encrypted = models.BooleanField(default=False)
+    
     submitted = models.DateTimeField(auto_now_add=True)
     
 class PasteContent(models.Model):
@@ -463,6 +457,76 @@ class PasteContent(models.Model):
         if not PasteContent.objects.filter(hash=hash, format=format).exists():
             paste_content = PasteContent(hash=hash, format=format, text=text)
             paste_content.save()
+        else:
+            # It already exists, just retrieve it
+            try:
+                paste_content = PasteContent.objects.get(hash=hash, format=format)
+            except ObjectDoesNotExist:
+                raise RuntimeError("Paste content was deleted during execution.")
+            
+        return paste_content.text
+            
+    @staticmethod
+    def get_paste_text(hash, format=None, encrypted=False):
+        """
+        Get paste text
+        """
+        if format == "none":
+            format = None
+        
+        if format and not encrypted:
+            cache_result = cache.get("paste_content:%s:%s:formatted_text" % (hash, format))
+            
+            if cache_result != None:
+                return cache_result
+            
+            if settings.STORE_FORMATTED_PASTE_CONTENT:
+                # We store the formatted paste content on the database, so
+                # it should exist on the database
+                # If it doesn't, generate it and save it
+                try:
+                    paste_content = PasteContent.objects.get(hash=hash, format=format)
+            
+                    cache.set("paste_content:%s:%s:formatted_text" % (hash, format), paste_content.text, None)
+                except ObjectDoesNotExist:
+                    # We are retrieving formatted paste content, but it doesn't exist on the database,
+                    # so generate it
+                    try:
+                        unformatted_paste_content = PasteContent.objects.get(hash=hash, format="none")
+                    except ObjectDoesNotExist:
+                        return None
+                    
+                    text = PasteContent.add_paste_text(unformatted_paste_content.text, format)
+                    cache.set("paste_content:%s:formatted_text" % hash, text, None)
+                    
+                    return text
+                return paste_content.text
+            else:
+                # We don't store the formatted paste content on the database,
+                # so only generate it and then save it to cache
+                unformatted_text = PasteContent.get_paste_text(hash, False, encrypted)
+                
+                if unformatted_text == None:
+                    return None
+                
+                text = highlighting.format_text(unformatted_text, format)
+                cache.set("paste_content:%s:formatted_text" % hash, text, None)
+                
+                return text
+        else:
+            cache_result = cache.get("paste_content:%s:text" % hash)
+            
+            if cache_result != None:
+                return cache_result
+            
+            try:
+                paste_content = PasteContent.objects.get(hash=hash, format="none")
+            except ObjectDoesNotExist:
+                return None
+            
+            cache.set("paste_content:%s:text" % hash, paste_content.text, None)
+       
+        return paste_content.text
         
 class PasteReport(models.Model):
     """

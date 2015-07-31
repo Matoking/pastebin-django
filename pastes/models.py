@@ -70,7 +70,7 @@ class Paste(models.Model):
     ADMIN_REMOVAL = 1
     USER_REMOVAL = 2
     
-    char_id = models.CharField(max_length=8)
+    char_id = models.CharField(max_length=8, db_index=True)
     user = models.ForeignKey(User, null=True, blank=True)
     
     # Version is incremented by one with every paste update
@@ -435,7 +435,7 @@ class PasteContent(models.Model):
     """
     Handles paste text, which are identified by hashes instead of paste identifiers
     """
-    hash = models.CharField(max_length=64)
+    hash = models.CharField(max_length=64, db_index=True)
     format = models.CharField(max_length=32)
     text = models.TextField()
         

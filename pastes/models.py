@@ -94,8 +94,8 @@ class Paste(models.Model):
     # also has it)
     deleted = models.BooleanField(default=False)
     
-    submitted = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
+    submitted = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated = models.DateTimeField(auto_now=True, db_index=True)
     
     objects = PasteManager()
     
@@ -429,7 +429,7 @@ class PasteVersion(models.Model):
     
     encrypted = models.BooleanField(default=False)
     
-    submitted = models.DateTimeField(auto_now_add=True)
+    submitted = models.DateTimeField(auto_now_add=True, db_index=True)
     
 class PasteContent(models.Model):
     """
@@ -538,7 +538,7 @@ class PasteReport(models.Model):
     type = models.CharField(max_length=32)
     text = models.TextField()
     
-    checked = models.BooleanField(default=False)
+    checked = models.BooleanField(default=False, db_index=True)
         
 class LatestPastes(object):
     @staticmethod

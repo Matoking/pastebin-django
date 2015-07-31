@@ -15,5 +15,5 @@ class Comment(models.Model):
     
     text = models.TextField()
     
-    submitted = models.DateTimeField(auto_now_add=True)
-    edited = models.DateTimeField(auto_now=True)
+    submitted = models.DateTimeField(auto_now_add=True, db_index=True)
+    edited = models.DateTimeField(auto_now=True, db_index=True)

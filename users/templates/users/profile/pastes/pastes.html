@@ -8,7 +8,9 @@
 			<tr>
 				<th>Title</th>
 				<th>Uploaded</th>
+				{% if profile_user == request.user %}
 				<th>Actions</th>
+				{% endif %}
 			</tr>
 		</thead>
 		<tbody>
@@ -16,10 +18,12 @@
 			<tr>
 				<td><a href="{% url "show_paste" paste.char_id %}">{{ paste.title|truncatechars:128 }}</a></td>
 				<td>{{ paste.submitted }}</td>
+				{% if profile_user == request.user %}
 				<td>
 					<a class="btn btn-primary btn-xs" href="{% url "pastes:edit_paste" paste.char_id %}"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
 					<a class="btn btn-danger btn-xs" href="{% url "pastes:remove_paste" paste.char_id %}"><span class="glyphicon glyphicon-remove"></span> Remove</a>
 				</td>
+				{% endif %}
 			</tr>
 			{% endfor %}
 		</tbody>

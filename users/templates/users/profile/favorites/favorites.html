@@ -8,14 +8,17 @@
 			<tr>
 				<th>Title</th>
 				<th>Added</th>
+				{% if profile_user == request.user %}
 				<th>Actions</th>
+				{% endif %}
 			</tr>
 		</thead>
 		<tbody>
 			{% for favorite in favorites %}
 			<tr>
 				<td><a href="{% url "show_paste" favorite.paste.char_id %}">{{ favorite.paste.title|truncatechars:128 }}</a></td>
-				<td>{{ paste.added }}</td>
+				<td>{{ favorite.added }}</td>
+				{% if profile_user == request.user %}
 				<td>
 					<form action="{% url "users:remove_favorite" %}" method="post">
 						{% csrf_token %}
@@ -24,6 +27,7 @@
 						<button class="btn btn-warning btn-xs" href="{% url "users:remove_favorite" %}"><span class="glyphicon glyphicon-remove"></span> Remove</button>
 					</form>
 				</td>
+				{% endif %}
 			</tr>
 			{% endfor %}
 		</tbody>

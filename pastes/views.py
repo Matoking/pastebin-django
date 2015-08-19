@@ -128,7 +128,7 @@ def paste_history(request, char_id, page=1):
                                                                          "removal_reason": paste.removal_reason}, status=404)
     
     total_version_count = PasteVersion.objects.filter(paste=paste).count()
-    total_pages = math.ceil(float(total_version_count) / float(VERSIONS_PER_PAGE))
+    total_pages = int(math.ceil(float(total_version_count) / float(VERSIONS_PER_PAGE)))
     
     if page > total_pages:
         page = max(int(total_pages), 1)

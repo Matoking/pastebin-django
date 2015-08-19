@@ -36,8 +36,18 @@ class Favorite(models.Model):
             cache.set("paste_favorited:%s:%s" % (user.username, paste.char_id), result)
             
             return result
-    
 class PastebinUser(object):
+    """
+    Contains methods to run on a newly created or deleted user
+    """
+    @staticmethod
+    def create_user(user):
+        """
+        Create required entries for a new user
+        """
+        site_settings = SiteSettings(user=user)
+        site_settings.save()
+    
     @staticmethod
     def delete_user(user):
         """
@@ -53,7 +63,6 @@ class PastebinUser(object):
             user.is_active = False
             
             user.save()
-
 class Limiter(object):
     """
     Throttles the amount of actions an user can do
@@ -182,3 +191,11 @@ class Limiter(object):
             return settings.MAX_PASTE_EDITS_PER_USER
         elif action == Limiter.COMMENT:
             return settings.MAX_COMMENTS_PER_USER
+        
+class SiteSettings(models.Model):
+    """
+    User's site settings, eg. whether user wants his favorites to be public
+    """
+    user = models.ForeignKey(User)
+    
+    public_favorites = models.BooleanField(default=True)

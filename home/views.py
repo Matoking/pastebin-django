@@ -74,7 +74,7 @@ def latest_pastes(request, page=1):
         total_paste_count = Paste.objects.filter(hidden=False).filter(Q(expiration_datetime__isnull=True) | Q(expiration_datetime__gte=current_datetime)).count()    
         cache.set("total_latest_pastes_count", total_paste_count)
     
-    total_pages = math.ceil(float(total_paste_count) / float(PASTES_PER_PAGE))
+    total_pages = int(math.ceil(float(total_paste_count) / float(PASTES_PER_PAGE)))
     if page > total_pages:
         page = max(int(total_pages), 1)
     

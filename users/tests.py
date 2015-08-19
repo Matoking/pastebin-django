@@ -526,6 +526,39 @@ class UserTests(CacheAwareTestCase):
         
         self.assertContains(response, "Add to favorites")
         
+    def test_user_can_hide_favorites(self):
+        """
+        Favorite a paste and change user's preferences to disable public favorites. Check that favorites are not shown
+        """
+        paste = upload_test_paste(self, username=None)
+        
+        create_test_account(self)
+        login_test_account(self)
+        
+        response = self.client.post(reverse("pastes:change_paste_favorite"), {"char_id": paste,
+                                                                              "action": "add"})
+        
+        response = self.client.get(reverse("users:profile", kwargs={"username": "TestUser"}))
+        self.assertContains(response, "Test paste")
+        
+        response = self.client.get(reverse("users:favorites", kwargs={"username": "TestUser"}))
+        self.assertContains(response, "Test paste")
+        
+        # Disable public favorites
+        response = self.client.post(reverse("users:change_preferences", kwargs={"username": "TestUser"}), {"public_favorites": False})
+        
+        self.assertContains(response, "Preferences changed!")
+        
+        logout(self)
+        
+        response = self.client.get(reverse("users:profile", kwargs={"username": "TestUser"}))
+        self.assertNotContains(response, "Test paste")
+        self.assertContains(response, "Private favorites")
+        
+        response = self.client.get(reverse("users:favorites", kwargs={"username": "TestUser"}))
+        self.assertNotContains(response, "Test paste")
+        self.assertContains(response, "Private favorites")
+        
     def test_user_cant_favorite_paste_multiple_times(self):
         """
         Try favoriting a paste multiple times

@@ -20,6 +20,7 @@ urlpatterns = patterns('',
     url(r'^(?P<username>\w+)/$', views.profile, {"tab": "home"}, name="profile"),
     
     # User settings
+    url(r'^(?P<username>\w+)/change_preferences/$', views.profile, {"tab": "change_preferences"}, name="change_preferences"),
     url(r'^(?P<username>\w+)/change_password/$', views.profile, {"tab": "change_password"}, name="change_password"),
     url(r'^(?P<username>\w+)/delete_account/$', views.profile, {"tab": "delete_account"}, name="delete_account"),
     

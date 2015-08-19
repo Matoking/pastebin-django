@@ -5,13 +5,14 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache
 from django.http import HttpResponse, HttpResponseRedirect
+from django.db import transaction
 
 from django_redis import get_redis_connection
 
 from users.models import PastebinUser
 
-from users.forms import RegisterForm, LoginForm, ChangePasswordForm, VerifyPasswordForm
-from users.models import Favorite
+from users.forms import RegisterForm, LoginForm, ChangePreferencesForm, ChangePasswordForm, VerifyPasswordForm
+from users.models import Favorite, SiteSettings
 
 from pastes.models import Paste
 
@@ -33,9 +34,11 @@ def register_view(request):
         if request.method == 'POST': # Form data was submitted
             if register_form.is_valid(): # Form data is valid
                 # Create the user
-                user = User.objects.create_user(register_form.cleaned_data['username'],
-                                                "N/A", # we don't deal with email addresses
-                                                register_form.cleaned_data['password'])
+                with transaction.atomic():
+                    user = User.objects.create_user(register_form.cleaned_data['username'],
+                                                    "N/A", # we don't deal with email addresses
+                                                    register_form.cleaned_data['password'])
+                    PastebinUser.create_user(user)
                                                   
                 # TODO: Show a different message if the registration fails
                 return render(request, 'users/register/register_success.html')
@@ -98,6 +101,17 @@ def profile(request, username, tab="home", page=1):
         cache.set("user:%s" % username, False)
         return render(request, "users/profile/profile_error.html", {"reason": "not_found"}, status=404)
     
+    # Get user's settings
+    profile_settings = cache.get("site_settings:%s" % username)
+    
+    if profile_settings == None:
+        try:
+            profile_settings = SiteSettings.objects.get(user=profile_user)
+        except ObjectDoesNotExist:
+            profile_settings = SiteSettings(user=profile_user)
+            profile_settings.save()
+        cache.set("site_settings:%s" % username, profile_settings)
+    
     if not profile_user.is_active:
         return render(request, "users/profile/profile_error.html", {"reason": "not_found"}, status=404)
     
@@ -121,6 +135,7 @@ def profile(request, username, tab="home", page=1):
         cache.set("user_favorite_count:%s" % profile_user.username, total_favorite_count)
     
     args = {"profile_user": profile_user,
+            "profile_settings": profile_settings,
             "current_page": page,
             "tab": tab,
             
@@ -149,6 +164,8 @@ def settings(request, username, args={}, tab="change_password"):
     if request.user.id != profile_user.id:
         return render(request, "users/settings/settings_error.html", {"reason": "incorrect_user"})
     
+    if tab == "change_preferences":
+        return change_preferences(request, args)
     if tab == "change_password":
         return change_password(request, args)
     elif tab == "delete_account":
@@ -158,12 +175,14 @@ def home(request, args):
     """
     Display user profile's home with the most recent pastes and favorites
     """
-    args["favorites"] = cache.get("profile_favorites:%s" % args["profile_user"].username)
-    
-    if args["favorites"] == None:
-        args["favorites"] = Favorite.objects.filter(user=args["profile_user"]).order_by('-added').select_related('paste')[:10]
-        cache.set("profile_favorites:%s" % args["profile_user"].username, args["favorites"])
-    
+    # Get favorites only if user has made them public
+    if args["profile_settings"].public_favorites or request.user == args["profile_user"]:
+        args["favorites"] = cache.get("profile_favorites:%s" % args["profile_user"].username)
+        
+        if args["favorites"] == None:
+            args["favorites"] = Favorite.objects.filter(user=args["profile_user"]).order_by('-added').select_related('paste')[:10]
+            cache.set("profile_favorites:%s" % args["profile_user"].username, args["favorites"])
+            
     if request.user == args["profile_user"]:
         args["pastes"] = cache.get("profile_pastes:%s" % args["profile_user"].username)
         
@@ -185,7 +204,7 @@ def pastes(request, user, args, page=1):
     """
     PASTES_PER_PAGE = 15
     
-    args["total_pages"] = math.ceil(float(args["total_paste_count"]) / float(PASTES_PER_PAGE))
+    args["total_pages"] = int(math.ceil(float(args["total_paste_count"]) / float(PASTES_PER_PAGE)))
     
     if page > args["total_pages"]:
         page = max(int(args["total_pages"]), 1)
@@ -216,7 +235,11 @@ def favorites(request, user, args, page=1):
     """
     FAVORITES_PER_PAGE = 15
     
-    args["total_pages"] = math.ceil(float(args["total_favorite_count"]) / float(FAVORITES_PER_PAGE))
+    if not args["profile_settings"].public_favorites and request.user != args["profile_user"]:
+        # Don't show pastes to other users if the user doesn't want to
+        return render(request, "users/profile/favorites/favorites_hidden.html", args)
+    
+    args["total_pages"] = int(math.ceil(float(args["total_favorite_count"]) / float(FAVORITES_PER_PAGE)))
     
     if page > args["total_pages"]:
         page = max(int(args["total_pages"]), 1)
@@ -263,6 +286,33 @@ def remove_favorite(request):
     
     return HttpResponseRedirect(reverse("users:favorites", kwargs={"username": request.user.username,
                                                                    "page": page}))
+
+def change_preferences(request, args):
+    """
+    Change various profile-related preferences
+    """
+    site_settings = SiteSettings.objects.get(user=request.user)
+    
+    form = ChangePreferencesForm(request.POST or None, initial={"public_favorites": site_settings.public_favorites})
+    
+    preferences_changed = False
+    
+    if form.is_valid():
+        cleaned_data = form.cleaned_data
+        
+        site_settings.public_favorites = cleaned_data["public_favorites"]
+        
+        site_settings.save()
+        
+        cache.set("site_settings:%s" % request.user.username, site_settings)
+        
+        preferences_changed = True
+        
+    args["form"] = form
+        
+    args["preferences_changed"] = preferences_changed
+        
+    return render(request, "users/settings/change_preferences/change_preferences.html", args)
 
 def change_password(request, args):
     """

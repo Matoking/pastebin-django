@@ -73,6 +73,13 @@ class LoginForm(forms.Form):
     password = forms.CharField(max_length=128,
                                widget = forms.TextInput(attrs={ 'type': 'password' }))
     
+class ChangePreferencesForm(forms.Form):
+    """
+    Form to change user's profile preferences
+    """
+    public_favorites = forms.BooleanField(required=False,
+                                          help_text="Allow everyone to see your favorited pastes")
+    
 class ChangePasswordForm(forms.Form):
     """
     Form to change the user's password

@@ -123,7 +123,7 @@ TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'pastesite_old',
+        'NAME': 'pastebin-django',
         'USER': 'superman',
         'PASSWORD': 'superpass',
         'HOST': 'localhost',

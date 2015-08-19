@@ -1,5 +1,10 @@
 {% load humanize %}
-{% if favorites %}
+{% if not profile_settings.public_favorites and request.user != profile_user %}
+<div class="alert alert-warning">
+	<strong>Private favorites</strong><br>
+	This user has opted to make his or her favorites private.
+</div>
+{% elif favorites %}
 	{% if profile_username == user.get_username %}
 	<h3>My recent favorites</h3>
 	{% else %}

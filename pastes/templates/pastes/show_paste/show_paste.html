@@ -3,6 +3,26 @@
 
 {% block title %}{{ paste.title }} - pastebin-django{% endblock %}
 
+{% block extra_js %}
+	{% load staticfiles %}
+	<script src="{% static 'js/jquery.timeago.js' %}"></script>
+	<script src="{% static 'js/linkify.min.js' %}"></script> 
+	<script src="{% static 'js/linkify-jquery.min.js' %}"></script>
+	<script src="{% static 'js/pastebin-favorite.js' %}"></script>
+	<script src="{% static 'js/pastebin-comments.js' %}"></script>
+	<script src="{% static 'js/pastebin-controls.js' %}"></script>
+	{% if paste.encrypted %}
+	<script src="{% static 'js/pastebin-decrypt.js' %}"></script>
+	<script src="{% static 'js/sjcl.js' %}"></script>
+	<script src="{% static 'js/prism.js' %}" data-manual></script>
+	{% endif %}
+{% endblock %}
+{% block extra_head %}
+{% if paste.encrypted %}
+<link href="{% static 'css/prism.css' %}" rel="stylesheet">
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="container">
 	<div class="row">
@@ -16,6 +36,8 @@
 			var pastebin_paste_format = "{{ paste.format }}";
 			
 			var pastebin_paste_favorited = {% if paste_favorited %}true{% else %}false{% endif %};
+			var pastebin_paste_encrypted = {% if paste.encrypted %}true{% else %}false{% endif %};
+			
 			var pastebin_total_comment_count = {{ comment_count }};
 			var pastebin_comment_page = 0;
 			
@@ -56,9 +78,9 @@
 							{% if paste.version > 1 %}
 							<a class="btn btn-primary btn-sm" href="{% url "pastes:paste_history" paste.char_id %}"><span class="glyphicon glyphicon-th-list"></span> History</a>
 							{% endif %}
-							<a class="btn btn-primary btn-sm" href="{% if version %}{% url "raw_paste" paste.char_id version %}{% else %}{% url "raw_paste" paste.char_id version %}{% endif %}"><span class="glyphicon glyphicon-font"></span> Raw</a>
-							<a class="btn btn-primary btn-sm" href="{% if version %}{% url "download_paste" paste.char_id version %}{% else %}{% url "download_paste" paste.char_id version %}{% endif %}"><span class="glyphicon glyphicon-download"></span> Download</a>
-						</div>
+							<a class="btn btn-primary btn-sm" href="{% if version_number %}{% url "raw_paste" paste.char_id version_number %}{% else %}{% url "raw_paste" paste.char_id %}{% endif %}"><span class="glyphicon glyphicon-font"></span> Raw</a>
+							<a class="btn btn-primary btn-sm" href="{% if version_number %}{% url "download_paste" paste.char_id version_number %}{% else %}{% url "download_paste" paste.char_id %}{% endif %}"><span class="glyphicon glyphicon-download"></span> Download</a>
+							</div>
 						<div class="col-md-3">
 							<p><b>HITS:</b> {{ paste_hits }}</p>
 							<p><b>COMMENTS: </b> {{ comment_count }}</p>
@@ -84,6 +106,10 @@
 				</div>
 			</div>
 			<hr>
+			<div id="paste-controls" style="padding-left: 50px; padding-bottom: 10px; display: none;" class="row">
+				<button id="decrease-font-size" onclick="pastebin.decreaseFontSize()" title="Lower font size" disabled="true" class="btn btn-xs btn-link" href="#"><span class="glyphicon glyphicon-minus"></span></button>
+				<button id="increase-font-size" onclick="pastebin.increaseFontSize()" title="Increase font size" class="btn btn-xs btn-link" href="#"><span class="glyphicon glyphicon-plus"></span></button>
+			</div>
 			{% if not paste_version.encrypted %}
 			{# PASTE NOT ENCRYPTED #}
 			{{ paste_text|safe }}
@@ -118,20 +144,4 @@
 		</div>
 	</div>
 </div>
-{% block extra_js %}
-	{% load staticfiles %}
-	<script src="{% static 'js/jquery.timeago.js' %}"></script>
-	<script src="{% static 'js/pastebin-favorite.js' %}"></script>
-	<script src="{% static 'js/pastebin-comments.js' %}"></script>
-	{% if paste.encrypted %}
-	<script src="{% static 'js/pastebin-decrypt.js' %}"></script>
-	<script src="{% static 'js/sjcl.js' %}"></script>
-	<script src="{% static 'js/prism.js' %}" data-manual></script>
-	{% endif %}
-{% endblock %}
-{% block extra_head %}
-{% if paste.encrypted %}
-<link href="{% static 'css/prism.css' %}" rel="stylesheet">
-{% endif %}
-{% endblock %}
 {% endblock %}

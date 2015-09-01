@@ -126,12 +126,12 @@ class TotalPasteCountNode(template.Node):
         count = cache.get("total_paste_count")
         
         if count != None:
-            return count
+            return "{:,}".format(int(count))
         else:
             count = Paste.objects.filter(hidden=False).count()
             cache.set("total_paste_count", count, 15)
             
-        return count
+        return "{:,}".format(int(count))
     
 @register.tag(name="get_total_paste_count")
 def get_total_paste_count(parser, token):

@@ -34,6 +34,8 @@ def show_paste(request, char_id, raw=False, download=False, version=None):
         elif paste == False:
             return render(request, "pastes/show_paste/show_error.html", {"reason": "not_found"}, status=404)
         
+        version_number = version
+        
         if version == None:
             version = paste.version
             
@@ -92,7 +94,7 @@ def show_paste(request, char_id, raw=False, download=False, version=None):
                                                                      "paste_version": paste_version,
                                                                      "paste_text": paste_text,
                                                                      
-                                                                     "version": version,
+                                                                     "version_number": version_number,
                                                                      
                                                                      "paste_favorited": paste_favorited,
                                                                      "paste_hits": paste_hits,

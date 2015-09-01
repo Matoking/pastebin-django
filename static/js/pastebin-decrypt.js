@@ -105,6 +105,9 @@ pastebin.highlightPaste = function() {
 	Prism.highlightAll();
 	
 	$("#encrypted-text").addClass("pre-code");
+	
+	// Also show paste controls
+	pastebin.showControls();
 };
 
 pastebin.loadDecrypt();

@@ -221,7 +221,7 @@ def pastes(request, user, args, page=1):
         args["pastes"] = cache.get("user_public_pastes:%s:%s" % (user.username, page))
         
         if args["pastes"] == None:
-            args["pastes"] = Paste.objects.get_pastes(user, count=PASTES_PER_PAGE, include_hidden=True, offset=offset)
+            args["pastes"] = Paste.objects.get_pastes(user, count=PASTES_PER_PAGE, include_hidden=False, offset=offset)
             cache.set("user_public_pastes:%s:%s" % (user.username, page), args["pastes"])
         
     args["pages"] = Paginator.get_pages(page, PASTES_PER_PAGE, args["total_paste_count"])

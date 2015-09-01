@@ -8,6 +8,8 @@ urlpatterns = patterns('',
     url(r'^login/$', views.login_view, name="login"),
     url(r'^logout/$', views.logout_view, name="logout"),
     
+    url(r'^remove_favorite/$', views.remove_favorite, name="remove_favorite"), 
+    
     # Public profile pages
     url(r'^(?P<username>\w+)/pastes/(?P<page>\d+)/$', views.profile, {"tab": "pastes"}, name="pastes"),
     url(r'^(?P<username>\w+)/pastes/$', views.profile, {"tab": "pastes",
@@ -23,6 +25,4 @@ urlpatterns = patterns('',
     url(r'^(?P<username>\w+)/change_preferences/$', views.profile, {"tab": "change_preferences"}, name="change_preferences"),
     url(r'^(?P<username>\w+)/change_password/$', views.profile, {"tab": "change_password"}, name="change_password"),
     url(r'^(?P<username>\w+)/delete_account/$', views.profile, {"tab": "delete_account"}, name="delete_account"),
-    
-    url(r'^remove_favorite/$', views.remove_favorite, name="remove_favorite"), 
 )

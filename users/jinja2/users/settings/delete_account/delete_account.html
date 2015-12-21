@@ -1,0 +1,19 @@
+{% extends "users/profile/profile.html" %}
+
+{% block profile_content %}
+<div class="col-md-10">
+	<div class="alert alert-danger">
+		<strong>You are about to delete your account!</strong><br>
+		Deleting your account also removes any pastes you have uploaded. <b>After deleted, your account can't be restored!</b>
+	</div>
+    <form action="{{ url('users:delete_account', request.user.get_username()) }}" class="form-horizontal" role="form" method="post">
+        {% csrf_token %}
+        {% include "form.html" %}
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-danger">Delete account</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock profile_content %}

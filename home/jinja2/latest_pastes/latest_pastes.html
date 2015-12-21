@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Latest pastes - pastebin-django{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="page-header">
+				<h1>Latest pastes</h1>
+			</div>						
+			{% if total_paste_count > 0 %}
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Title</th>
+						<th>Age</th>
+						{% if request.user.is_staff %}
+						<th>Actions</th>
+						{% endif %}
+					</tr>
+				</thead>
+				<tbody>
+					{% for paste in pastes %}
+					<tr>
+						<td><a href="{{ url("show_paste", paste.char_id) }}">{{ paste.title|truncate(64) }}</a></td>
+						<td>{{ seconds_to_str(timesince_in_seconds(paste.submitted)) }}</td>
+						{% if request.user.is_staff %}
+						<td>
+							<a class="btn btn-primary btn-xs" href="{{ url("pastes:edit_paste", paste.char_id) }}"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+							<a class="btn btn-danger btn-xs" href="{{ url("pastes:remove_paste", paste.char_id) }}"><span class="glyphicon glyphicon-remove"></span> Remove</a>
+						</td>
+						{% endif %}
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			{% with destination="latest_pastes" %}{% include "pagination.html" %}{% endwith %}
+			{% else %}
+			<div class="alert alert-warning">
+				<strong>No pastes uploaded</strong><br>
+				No public pastes have been uploaded yet.
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endblock %}

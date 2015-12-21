@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="page-header">
+		        <h1>Register</h1>
+		    </div>
+			<div class="alert alert-warning">
+				{% if reason == "email_send_failed" %}
+				<strong>Verification message couldn't be sent</strong><br>
+				The verification message to verify your email address couldn't be sent.
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

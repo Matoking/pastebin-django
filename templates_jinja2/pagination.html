@@ -1,0 +1,27 @@
+<nav>
+	<ul class="pagination">
+		{% for page in pages %}
+			{% if page == "first" %}
+				{% with page_number=1 %}
+				<li class="{% if current_page == page_number %}active{% endif %}"><a aria-label="First" href="{% if current_page != page_number %}{% if url_arg %}{{ url_direct(destination, args=[url_arg, page_number]) }}{% else %}{{ url_direct(destination, args=[page_number]) }}{% endif %}{% else %}#{% endif %}"><span aria-hidden="true">&laquo;</span></a></li>
+				{% endwith %}
+			{% elif page == "previous" %}
+				{% with page_number=current_page-1 %}
+					<li class="{% if current_page == page_number %}active{% endif %}"><a aria-label="Previous" href="{% if current_page != page_number %}{% if url_arg %}{{ url_direct(destination, args=[url_arg, page_number]) }}{% else %}{{ url_direct(destination, args=[page_number]) }}{% endif %}{% else %}#{% endif %}"><span aria-hidden="true">&lt;</span></a></li>
+				{% endwith %}
+			{% elif page == "next" %}
+				{% with page_number=current_page+1 %}
+				<li class="{% if current_page == page_number %}active{% endif %}"><a aria-label="Next" href="{% if current_page != page_number %}{% if url_arg %}{{ url_direct(destination, args=[url_arg, page_number]) }}{% else %}{{ url_direct(destination, args=[page_number]) }}{% endif %}{% else %}#{% endif %}"><span aria-hidden="true">&gt;</span></a></li>
+				{% endwith %}
+			{% elif page == "last" %}
+				{% with page_number=total_pages %}
+				<li class="{% if current_page == page_number %}active{% endif %}"><a aria-label="Last" href="{% if current_page != page_number %}{% if url_arg %}{{ url_direct(destination, args=[url_arg, page_number]) }}{% else %}{{ url_direct(destination, args=[page_number]) }}{% endif %}{% else %}#{% endif %}"><span aria-hidden="true">&raquo;</span></a></li>
+				{% endwith %}
+			{% else %}
+				{% with page_number=page %}
+				<li class="{% if current_page == page_number %}active{% endif %}"><a aria-label="{{ page_number }}" href="{% if current_page != page_number %}{% if url_arg %}{{ url_direct(destination, args=[url_arg, page_number]) }}{% else %}{{ url_direct(destination, args=[page_number]) }}{% endif %}{% else %}#{% endif %}"><span aria-hidden="true">{{ page_number }}</span></a></li>
+				{% endwith %}
+			{% endif %}
+		{% endfor %}
+	</ul>
+</nav>

@@ -5,7 +5,7 @@ from django.contrib import admin
 from pastes import views as paste_views
 from home import views as home_views
 
-urlpatterns = patterns('',
+urlpatterns = [
     # Examples:
     # url(r'^$', 'pastebin.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
@@ -36,4 +36,4 @@ urlpatterns = patterns('',
     
     url(r'^(?P<char_id>\w{8})/(?P<version>\d+)/$', paste_views.show_paste, name="show_paste"),
     url(r'^(?P<char_id>\w{8})/$', paste_views.show_paste, name="show_paste"),
-)
+]

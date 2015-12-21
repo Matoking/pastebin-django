@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="page-header">
+		        <h1>Edit paste</h1>
+		    </div>
+			<div class="alert alert-warning">
+				{% if reason == "not_found" %}
+				<strong>Paste not found</strong><br>
+				The paste you tried to edit was not found.
+				{% elif reason == "not_logged_in" %}
+				<strong>Not logged in</strong><br>
+				You have to be logged in to edit your own pastes.
+				{% elif reason == "not_owner" %}
+				<strong>Not permitted</strong><br>
+				You can't edit a paste you didn't upload yourself.
+				{% elif reason == "removed" %}
+				<strong>Paste removed</strong><br>
+				This paste has been removed and can no longer be edited.
+				{% elif reason == "expired" %}
+				<strong>Paste expired</strong><br>
+				This paste has expired and can no longer be edited.
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

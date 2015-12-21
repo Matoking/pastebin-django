@@ -1,0 +1,35 @@
+{# A template that allows certain Bootstrap forms to be implemented more easily #}
+{% for field in form %}
+	{% if not exclude or field.name not in exclude %}
+		{% if field.field.widget.input_type == "hidden" %}
+		<input type="hidden" name="{{ field.name }}" value="{% if field.value() == True %}true{% elif field.value() == False %}false{% else %}{{ field.value() }}{% endif %}"/>
+		{% else %}
+			{% if field.errors %}
+			<div class="form-group has-error">
+			{% else %}
+			<div class="form-group">
+			{% endif %}
+			    <label for="{{ field.id_for_label }}" style="{% if not field.field.required %}font-weight: lighter;{% endif %}" class="col-sm-{% if form_label_col %}{{ form_label_col }}{% else %}2{% endif %} control-label">{{ field.label }}</label>
+			    <div class="col-sm-10">
+			        <div class="row">
+			            <div class="col-sm-{% if form_field_col %}{{ form_field_col }}{% else %}4{% endif %}">
+			            	{% if is_checkbox(field) %}
+			            	<div class="checkbox pull-left"><label>
+			            	{% endif %}
+			            	{{ attr(field, {"class": "form-control"}) }}
+			                {% if is_checkbox(field) %}
+			            	</label></div>
+			            	{% endif %}
+			            </div>
+			        </div>
+			        {% for error in field.errors %}
+			        <p class="help-block"><b style="color: red;">{{ error|escape }}</b></p>
+			        {% endfor %}
+			        {% if field.help_text %}
+			        <p class="help-block">{{ field.help_text|safe }}</p>
+			        {% endif %}
+			    </div>
+			</div>
+		{% endif %}
+	{% endif %}
+{% endfor %}

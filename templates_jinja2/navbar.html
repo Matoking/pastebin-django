@@ -1,0 +1,48 @@
+<div class="navbar navbar-inverse navbar-fixed-top navbar-default" role="navigation">
+	<div class="container">
+	    <div class="navbar-header">
+	    	<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-navbar" aria-expanded="false">
+		        <span class="sr-only">Toggle navigation</span>
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		      </button>
+                <a class="navbar-brand" href="{{ url('home:home') }}">pastebin-django</a>
+	    </div>
+	    <div class="collapse navbar-collapse" id="main-navbar">
+	    	<ul class="nav navbar-nav">
+		        <li><a href="{{ url('home:home') }}">Home</a></li>
+		        <li class="{{ ancestor("latest_pastes") }}"><a href="{{ url('latest_pastes') }}">Latest pastes</a>
+		        <li class="{{ ancestor("faq") }}"><a href="{{ url('faq') }}">FAQ</a>
+		        <li><a href="{{ url('random_paste') }}">Random</a></li>
+		    </ul>
+            <ul class="nav navbar-nav navbar-right">
+            	{% if request.user.is_staff %}
+            	{% if request.unread_paste_report_count > 0 %}<li><a href="{{ url('admin:pastes_pastereport_changelist') }}"><span class="glyphicon glyphicon-inbox"></span> {{ request.unread_paste_report_count }} report(s)</a></li>{% endif %}
+            	{% endif %}
+                {% if request.user.is_authenticated() %}
+                <li class="dropdown {{ ancestor("users:profile", request.user.get_username()) }}">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"><b><span class="glyphicon glyphicon-user"></span> {{ request.user.get_username() }}</b> <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    	<li><a href="{{ url('users:profile', request.user.get_username()) }}"><span class="glyphicon glyphicon-user"></span> {{ request.user.get_username() }}</a></li>
+                    	<li class="divider"></li>
+                    	<li><a href="{{ url('users:pastes', request.user.get_username()) }}"><span class="glyphicon glyphicon-file"></span> My pastes</a></li>
+                    	<li><a href="{{ url('users:favorites', request.user.get_username()) }}"><span class="glyphicon glyphicon-star"></span> My favorites</a></li>
+                    	<li class="divider"></li>
+                    	<li><a href="{{ url('users:change_password', request.user.get_username()) }}"><span class="glyphicon glyphicon-lock"></span> Change password</a></li>
+                    	<li class="divider"></li>
+                    	{% if request.user.is_staff %}
+                    	<li><a href="{{ url('admin:index') }}"><span class="glyphicon glyphicon-briefcase"></span> Admin</a></li>
+                    	<li class="divider"></li>
+                    	{% endif %}
+                        <li><a href="{{ url('users:logout') }}"><span class="glyphicon glyphicon-off"></span> Logout</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="{{ ancestor("users:register") }}"><a href="{{ url('users:register') }}">Register</a></li>
+                <li class="{{ ancestor("users:login") }}"><a href="{{ url('users:login') }}">Login</a></li>
+                {% endif %}
+            </ul>
+	    </div><!--/.nav-collapse -->
+	</div>
+</div>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+{# HEADER #}
+{% block head %}
+<head>
+    <meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<title>{% block title %}pastebin-django{% endblock %}</title>
+	
+	<!-- Bootstrap core CSS -->
+	<link rel="shortcut icon" href="{% static 'ico/favicon.png' %}">
+	<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+	<link href="{% static 'css/pastebin-django.css' %}" rel="stylesheet">
+	<link href="{% static 'css/pygments-style.css' %}" rel="stylesheet">
+	
+	<!-- Padding to move content below the menubar -->
+	<style>
+	body {
+	  padding-top: 50px;
+	}
+	</style>
+	{% block extra_head %}{% endblock %}
+</head>
+{% endblock head %}
+
+{% block body %}
+{% block body_tag %}<body>{% endblock body_tag %}
+	{# MENUBAR #}
+    {% block navbar %}{% include "navbar.html" %}{% endblock navbar %}
+    
+    {# PAGE CONTENT #}
+    {% block content %}
+    {% endblock content %}
+    
+    {# PAGE FOOTER #}
+    {% block page_footer %}{% include 'page_footer.html' %}{% endblock page_footer %}
+    
+    {# FOOTER #}
+    <!-- Bootstrap core JavaScript
+	================================================== -->
+	<!-- Placed at the end of the document so the pages load faster -->
+	<script src="{% static 'js/jquery.min.js' %}"></script>
+	<script src="{% static 'js/bootstrap.min.js' %}"></script>
+	<script src="{% static 'js/jquery.readmore.min.js' %}"></script>
+	{% block extra_js %}{% endblock extra_js %}
+</body>
+{% endblock body %}
+
+</html>

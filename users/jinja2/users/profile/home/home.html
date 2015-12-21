@@ -1,0 +1,10 @@
+{% extends "users/profile/profile.html" %}
+
+{% block profile_content %}
+<div class="col-md-5">
+	{% include "users/profile/home/home_pastes.html" %}
+</div>
+<div class="col-md-5">
+	{% include "users/profile/home/home_favorites.html" %}
+</div>
+{% endblock %}

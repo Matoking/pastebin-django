@@ -1,0 +1,78 @@
+{% extends "users/profile/profile.html" %}
+
+{% block profile_content %}
+<div class="col-md-10">
+	<div class="alert alert-info">
+		If you have added an email address to your account and verified it, you can reset your password in case you find yourself unable to login to your account.
+	</div>
+	{% if email_address_changed %}
+	<hr>
+	<div class="alert alert-success">
+		<strong>Email address changed!</strong><br>
+		Your email address was changed and a verification link was sent to your new email address.
+	</div>
+	{% elif email_address_change_failed %}
+	<hr>
+	<div class="alert alert-danger">
+		<strong>Email verification link couldn't be sent!</strong><br>
+		A verification link to verify your email address couldn't be sent. Please try again later.
+	</div>
+	{% elif verification_link_resent %}
+	<hr>
+	<div class="alert alert-success">
+		<strong>Verification link resent!</strong><br>
+		The verification link was resent to your email address. Note that the old verification link is no longer valid.
+	</div>
+	{% elif verification_link_resend_failed %}
+	<hr>
+	<div class="alert alert-success">
+		<strong>Verification link couldn't be resent!</strong><br>
+		The verification link couldn't be resent to your email address. Please try again later.
+	</div>
+	{% elif error %}
+    <hr>
+    <div class="alert alert-danger">
+    	<strong>{{ error }}</strong>
+    </div>
+	{% endif %}
+    <form action="{{ url('users:change_email_address', request.user.get_username()) }}" class="form-horizontal" role="form" method="post">
+	    {% if site_settings.email_address != "" %}
+			<div class="form-group">
+				<label class="col-sm-2 control-label">Current email address</label>
+				<div class="col-sm-10">
+					<p class="form-control-static">{{ site_settings.email_address }}</b></p>
+				</div>
+			</div>
+			{% if site_settings.email_address_verified %}
+			<div class="form-group">
+				<label class="col-sm-2 control-label">Status</label>
+				<div class="col-sm-10">
+					<p class="form-control-static"><b style="color: green;">Verified</b></p>
+				</div>
+			</div>
+			{% else %}
+			<div class="form-group">
+				<label class="col-sm-2 control-label">Status</label>
+				<div class="col-sm-10">
+					<p class="form-control-static"><b style="color: red;">Not verified</b></p>
+				</div>
+			</div>
+			{% endif %}
+			<hr>
+		{% endif %}
+        {% csrf_token %}
+        {% include "form.html" %}
+        <hr>
+        {% with form=captcha_form %}{% include "form.html" %}{% endwith %}
+        {% with form=verify_form %}{% include "form.html" %}{% endwith %}
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button name="update_email_address" type="submit" class="btn btn-primary">Change email address</button>
+                {% if site_settings.email_address != "" and not site_settings.email_address_verified %}
+                <button name="resend_link" type="submit" class="btn btn-primary">Resend verification link</button>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock profile_content %}

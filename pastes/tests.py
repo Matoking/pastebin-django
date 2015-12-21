@@ -184,7 +184,8 @@ class PasteTests(CacheAwareTestCase):
         
         # filesizeformat template tag uses a non-breakable space, thus the more verbose
         # check
-        self.assertContains(response, '8\xc2\xa0bytes')
+        # Depending on the templating engine file size is printed as either string
+        self.assertEqual('8\xc2\xa0bytes' in response.content or '8 Bytes' in response.content, True)
         
     def test_formatted_pastes_saved_when_needed(self):
         """

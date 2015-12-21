@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<br>
+			<div class="alert alert-warning">
+				{% if reason == "not_found" %}
+				<strong>User not found</strong><br>
+				The user whose profile you tried to view does not exist.
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

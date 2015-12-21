@@ -1,0 +1,32 @@
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<h3 class="panel-title"><span class="glyphicon glyphicon-user"></span> {{ profile_user.get_username() }}</h3>
+	</div>
+	<div class="list-group">
+		<a href="{{ url("users:profile", profile_user.get_username()) }}" class="list-group-item {% if tab == "home" %}active{% endif %}"><span class="glyphicon glyphicon-home"></span> Overview</a>
+		<a href="{{ url("users:pastes", profile_user.get_username()) }}" class="list-group-item {% if tab == "pastes" %}active{% endif %}">
+			{% if total_paste_count > 0 %}
+			<span class="badge">{{ total_paste_count }}</span>
+			{% endif %}
+			<span class="glyphicon glyphicon-file"></span> Pastes
+		</a>
+		{% if profile_settings.public_favorites or profile_user == request.user %}
+		<a href="{{ url("users:favorites", profile_user.get_username()) }}" class="list-group-item {% if tab == "favorites" %}active{% endif %}">
+			{% if total_favorite_count > 0 %}
+			<span class="badge">{{ total_favorite_count }}</span>
+			{% endif %}
+			<span class="glyphicon glyphicon-star"></span> Favorites
+		</a>
+		{% endif %}
+	</div>
+	{% if profile_user.id == request.user.id %}
+	<div class="panel-heading">
+		<h3 class="panel-title"><span class="glyphicon glyphicon-cog"></span> Settings</h3>
+	</div>
+	<div class="list-group">
+		<a href="{{ url("users:change_preferences", profile_user.get_username()) }}" class="list-group-item {% if tab == "change_preferences" %}active{% endif %}"><span class="glyphicon glyphicon-pencil"></span> Change preferences</a>
+		<a href="{{ url("users:change_password", profile_user.get_username()) }}" class="list-group-item {% if tab == "change_password" %}active{% endif %}"><span class="glyphicon glyphicon-lock"></span> Change password</a>
+		<a href="{{ url("users:delete_account", profile_user.get_username()) }}" class="list-group-item list-group-item-danger {% if tab == "delete_account" %}active{% endif %}"><span class="glyphicon glyphicon-warning-sign {% if tab == "delete_account" %}active{% endif %}"></span> Delete account</a>
+	</div>
+	{% endif %}
+</div>

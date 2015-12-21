@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 
 from users import views
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^register/$', views.register_view, name="register"),
     url(r'^login/$', views.login_view, name="login"),
     url(r'^logout/$', views.logout_view, name="logout"),
@@ -25,4 +25,4 @@ urlpatterns = patterns('',
     url(r'^(?P<username>\w+)/change_preferences/$', views.profile, {"tab": "change_preferences"}, name="change_preferences"),
     url(r'^(?P<username>\w+)/change_password/$', views.profile, {"tab": "change_password"}, name="change_password"),
     url(r'^(?P<username>\w+)/delete_account/$', views.profile, {"tab": "delete_account"}, name="delete_account"),
-)
+]

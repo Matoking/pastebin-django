@@ -1,0 +1,23 @@
+<form action="{{ url('home:home') }}" method="post" class="form-horizontal">
+	{% csrf_token %}
+	<div class="{% if form.text.errors %}has-error{% endif %}">
+		<textarea name="text" class="form-control paste-text-field {% if form.text.errors %}has-error{% endif %}" rows="15"></textarea>
+	</div>
+	<br>
+	<!-- Tabs -->
+	<br>
+	<div role="tabpanel">
+		{% with homepage=True %}{% include "home/submit_paste_tabs.html" %}{% endwith %}
+			{% if captcha_form %}
+			<hr>
+			{% with form=captcha_form %}{% include "form.html" %}{% endwith %}
+			{% endif %}
+			<!-- Submit -->
+			<div class="form-group form-actions">
+				<div class="col-sm-offset-2 col-sm-10">
+					<button class="btn btn-primary">Submit paste</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>

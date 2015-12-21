@@ -1,0 +1,41 @@
+<!-- Comment form -->
+<div class="comment-form" id="submit-comment-form">
+	<div class="page-header">
+		<h4 class="comment-form-title"><span class="glyphicon glyphicon-pencil"></span> Post a comment</h4>
+	</div>
+	<div class="form-horizontal">
+		<!-- Possible error messages -->
+		<div class="form-group">
+			<div class="col-sm-2"></div>
+			<div class="col-sm-8">
+				<div style="display: none;" class="alert alert-danger comment-form-errors">
+				</div>
+			</div>
+		</div>
+		<!-- Comment information -->
+		<div class="form-group">
+			<div class="col-sm-2"></div>
+			<div class="col-sm-8 comment-form-description">
+				You are posting a comment to <b>{{ paste.title }}</b>
+			</div>
+		</div>
+		<!-- Comment -->
+		<div class="form-group">
+			<label class="col-sm-2 control-label">Comment</label>
+			<div class="col-sm-8">
+				<textarea class="form-control comment-text-field" rows="10" maxlength="2000"></textarea>
+			</div>
+		</div>
+		<!-- Submit/Update -->
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button onclick="pastebin.addComment()" class="btn btn-primary comment-form-button">Post comment</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="delete-comment-form" style="display: none;" class="alert alert-danger delete-comment-form">
+	<strong>Are you sure you want to delete this comment?</strong><br>
+	<button class="btn btn-danger delete-comment-button-yes">Yes</button>
+	<button class="btn btn-primary delete-comment-button-no">No</button>
+</div>

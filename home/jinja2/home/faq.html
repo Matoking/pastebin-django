@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Frequently asked questions - pastebin-django{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="page-header">
+				<h1>Frequently asked questions</h1>
+			</div>
+			<p>
+				<b>What is pastebin-django?</b><br>
+				pastebin-django is a site that allows you to store 'pastes', short text snippets.
+			</p>
+			<p>
+				<b>What is the syntax highlighting feature?</b><br>
+				If your paste contains code or markup, you can use the syntax highlighting to highlight the text. Note that encrypted pastes don't support all of the syntax highlighting formats that are available with unencrypted pastes.
+			</p>
+			<p>
+				<b>How does the encryption feature work?</b><br>
+				Your pastes can be encrypted to ensure only people you trust will be able to read them. Encrypting your paste means you need to provide the same password you used to encrypt paste to decrypt and thus read it. Since the encryption and decryption are done locally on your computer, the administrators of this site won't be able to recover the content of your encrypted paste if you lose your password.
+			</p>
+			<p>
+				<b>How does the paste history feature work?</b><br>
+				If you have uploaded your paste while logged in, you can update your paste later on. Paste history means the earlier versions of your paste remain available.
+			</p>
+			<p>
+				<b>Can I comment on pastes?</b><br>
+				Yes, if you have registered you can comment on pastes.
+			</p>
+			<p>
+				<b>What software does this site run on?</b><br>
+				This pastebin site runs on <a href="https://github.com/Matoking/pastebin-django">pastebin-django</a>, a web application developed using the Django web framework.
+			</p>
+		</div>
+	</div>
+</div>
+{% endblock content %}

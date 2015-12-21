@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}User: {{ profile_user.get_username() }} - pastebin-django{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="page-header">
+				<h1>{{ profile_user.get_username() }} 
+				<small>{% if tab == "home" %}Overview
+					   {% elif tab == "pastes" %}Pastes
+					   {% elif tab == "favorites" %}Favorites
+					   {% elif tab == "change_password" %}Change password
+					   {% elif tab == "delete_account" %}Delete account{% endif %}</small></h1>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-2">
+			{% include "users/profile/profile_navbar.html" %}
+		</div>
+		{% block profile_content %}{% endblock %}
+	</div>
+	{% if profile_user != request.user %}
+	<hr>
+	{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-8">
+			<div class="page-header">
+				<h3>Upload a new paste</h3>
+			</div>
+			{% include "home/submit_paste_form.html" %}
+		</div>
+		<div class="col-md-4">
+			{% include "home/latest_pastes.html" %}
+		</div>
+	</div>
+</div>
+{% endblock %}
+{% block extra_js %}
+	<script src="{% static 'js/sjcl.js' %}"></script>
+	<script src="{% static 'js/pastebin-submit.js' %}"></script>
+{% endblock %}

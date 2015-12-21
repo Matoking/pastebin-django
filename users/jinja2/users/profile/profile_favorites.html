@@ -1,0 +1,40 @@
+{% if not profile_settings.public_favorites and request.user != profile_user %}
+<div class="col-md-10">
+	<div class="alert alert-warning">
+		<strong>Private favorites</strong><br>
+		This user has opted to make his or her favorites private.
+	</div>
+</div>
+{% elif favorites %}
+<table class="table">
+	<thead>
+		<tr>
+			<th>Title</th>
+			<th>Age</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for paste in favorites %}
+		<tr>
+			<td><a href="{{ url("show_paste", paste.char_id) }}">{{ paste.title|truncate(32) }}</a></td>
+			<td>{{ seconds_to_str(timesince_in_seconds(paste.submitted)) }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+	{% if favorites.count < total_favorite_count %}
+	<a class="btn btn-primary" href="{{ url('users:favorites', profile_username) }}">All favorites</a>
+	{% endif %}
+{% else %}
+	{% if profile_username == request.user.get_username() %}
+	<div class="alert alert-info">
+		<strong>No favorites added</strong><br>
+		You haven't added any favorites yet.
+	</div>
+	{% else %}
+	<div class="alert alert-info">
+		<strong>No favorites added</strong><br>
+		This user hasn't added any favorites yet.
+	</div>
+	{% endif %}
+{% endif %}

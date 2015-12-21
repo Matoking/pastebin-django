@@ -1,0 +1,35 @@
+{% if pastes %}
+	{% if profile_username == request.user.get_username() %}
+	<h3>My recent pastes</h3>
+	{% else %}
+	<h3>Recent pastes</h3>
+	{% endif %}
+<table class="table">
+	<thead>
+		<tr>
+			<th>Title</th>
+			<th>Age</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for paste in pastes %}
+		<tr>
+			<td><a href="{{ url("show_paste", paste.char_id) }}">{{ paste.title|truncate(32) }}</a></td>
+			<td>{{ seconds_to_str(timesince_in_seconds(paste.submitted)) }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% else %}
+	{% if profile_user.get_username() == request.user.get_username() %}
+	<div class="alert alert-info">
+		<strong>No pastes uploaded</strong><br>
+		You haven't uploaded any pastes yet.
+	</div>
+	{% else %}
+	<div class="alert alert-info">
+		<strong>No pastes uploaded</strong><br>
+		This user hasn't uploaded any pastes yet.
+	</div>
+	{% endif %}
+{% endif %}

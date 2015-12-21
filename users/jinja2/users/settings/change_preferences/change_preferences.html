@@ -1,0 +1,21 @@
+{% extends "users/profile/profile.html" %}
+
+{% block profile_content %}
+<div class="col-md-10">
+	{% if preferences_changed %}
+	<div class="alert alert-success">
+		<strong>Preferences changed!</strong><br>
+		Your preferences were successfully changed.
+	</div>
+	{% endif %}
+    <form action="{{ url('users:change_preferences', request.user.get_username()) }}" class="form-horizontal" role="form" method="post">
+        {% csrf_token %}
+        {% include "form.html" %}
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-primary">Update preferences</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock profile_content %}

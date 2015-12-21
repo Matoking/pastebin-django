@@ -24,8 +24,6 @@ SECRET_KEY = 'correct horse battery staple'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
-
 ALLOWED_HOSTS = [".pastesite.matoking.com"]
 
 # Limits
@@ -81,19 +79,6 @@ INSTALLED_APPS = (
     'comments',
 )
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    "django.contrib.auth.context_processors.auth",
-    "django.core.context_processors.debug",
-    "django.core.context_processors.i18n",
-    "django.core.context_processors.media",
-    "django.core.context_processors.static",
-    "django.core.context_processors.tz",
-    "django.contrib.messages.context_processors.messages",
-    
-    # Required by django-lineage
-    "django.core.context_processors.request",
-)
-
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -115,7 +100,49 @@ WSGI_APPLICATION = 'pastebin.wsgi.application'
 
 # Templates
 
-TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
+# All of the user-facing templates have also been ported to Jinja2, so according to the
+# load order here, they will be loaded instead of templates based on Django's own templating engine
+# If you want to load all templates using Django's own template engine, replace or move
+# the entry for Jinja2's backend here
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.jinja2.Jinja2',
+        'DIRS': [os.path.join(BASE_DIR, 'templates_jinja2')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'environment': 'pastebin.jinja2.environment',
+            'extensions': [
+                'jdj_tags.extensions.DjangoCompat',
+                'jinja2.ext.with_',
+            ],
+        }
+    },
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'OPTIONS': {
+            'context_processors': [
+                "django.contrib.auth.context_processors.auth",
+                "django.core.context_processors.debug",
+                "django.core.context_processors.i18n",
+                "django.core.context_processors.media",
+                "django.core.context_processors.static",
+                "django.core.context_processors.tz",
+                "django.contrib.messages.context_processors.messages",
+                
+                # Required by django-lineage
+                "django.core.context_processors.request",
+            ],
+            'loaders': [
+                ('django.template.loaders.cached.Loader', [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+                ]),
+            ],
+            'debug': DEBUG,
+        }
+    },
+]
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases

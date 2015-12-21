@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<br>
+			<div class="alert alert-warning">
+				{% if reason == "incorrect_user" %}
+				<strong>Incorrect user</strong><br>
+				You tried to change the settings of another user. That's not nice.
+				{% elif reason == "not_logged_in" %}
+				<strong>Not logged in</strong><br>
+				You need to be logged in in order to change your settings.
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

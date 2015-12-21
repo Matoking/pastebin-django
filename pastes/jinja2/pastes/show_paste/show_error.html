@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<br>
+			<div class="alert alert-warning">
+				{% if reason == "expired" %}
+				<strong>Paste expired</strong><br>
+				The paste you tried to view has expired and can no longer be viewed.
+				{% elif reason == "user_removed" %}
+				<strong>Paste removed</strong><br><br>
+				The paste was removed by the uploader.
+				{% elif reason == "admin_removed" %}
+				<strong>Paste removed</strong><br>
+				The paste was removed by an administrator.<br><br>
+				{% elif reason == "not_found" %}
+				<strong>Paste not found</strong><br>
+				The paste you tried to view does not exist.<br><br>
+				{% endif %}
+				{% if removal_reason %}
+				Reason for removal:<br>
+				<p class="paste-text">{{ removal_reason }}</p>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

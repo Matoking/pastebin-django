@@ -1,0 +1,50 @@
+{% extends "users/profile/profile.html" %}
+
+{% block profile_content %}
+<div class="col-md-10">
+	{% if favorites %}
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Title</th>
+				<th>Added</th>
+				{% if profile_user == request.user %}
+				<th>Actions</th>
+				{% endif %}
+			</tr>
+		</thead>
+		<tbody>
+			{% for favorite in favorites %}
+			<tr>
+				<td><a href="{{ url("show_paste", favorite.paste.char_id) }}">{{ favorite.paste.title|truncate(128) }}</a></td>
+				<td>{{ favorite.added }}</td>
+				{% if profile_user == request.user %}
+				<td>
+					<form action="{{ url("users:remove_favorite") }}" method="post">
+						{% csrf_token %}
+						<input type="hidden" name="favorite_id" value="{{ favorite.id }}"></input>
+						<input type="hidden" name="page" value="{{ current_page }}"></input>
+						<button type="submit" class="btn btn-warning btn-xs"><span class="glyphicon glyphicon-remove"></span> Remove</button>
+					</form>
+				</td>
+				{% endif %}
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% with destination="users:favorites", url_arg=profile_user.get_username() %}{% include "pagination.html" %}{% endwith %}
+	{% else %}
+		{% if profile_user.get_username() == request.user.get_username() %}
+		<div class="alert alert-info">
+			<strong>No favorites added</strong><br>
+			You haven't added any favorites yet.
+		</div>
+		{% else %}
+		<div class="alert alert-info">
+			<strong>No favorites added</strong><br>
+			This user hasn't added any favorites yet.
+		</div>
+		{% endif %}
+	{% endif %}
+</div>
+{% endblock %}

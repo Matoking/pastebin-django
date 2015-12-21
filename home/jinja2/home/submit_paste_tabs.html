@@ -1,0 +1,81 @@
+<ul class="nav nav-tabs submit-paste-tabs" role="tablist">
+	<li role="presentation" class="active"><a href="#main-tab" aria-controls="main-tab" role="tab" data-toggle="tab">Main</a></li>
+	<li role="presentation"><a href="#encryption-tab" aria-controls="encryption-tab" role="tab" data-toggle="tab">Encryption</a></li>
+</ul>
+<div class="tab-content">
+	<div role="tabpanel" class="tab-pane fade in active" id="main-tab">
+		{% if request.user.is_authenticated() %}
+		<div class="form-group">
+			<div class="col-sm-2"></div>
+			<div class="col-sm-10">
+				{% if homepage %}
+				<p class="form-control-static">You are uploading this paste as user <b>{{ request.user.get_username() }}</b></p>
+				{% endif %}
+			</div>
+		</div>
+		{% endif %}
+		{# Print errors related to the text field here #}
+		{% if form.text.errors %}
+		<div class="alert alert-danger">
+			{{ form.text.errors }}
+		</div>
+		{% endif %}
+		{% with form_label_col=2, form_field_col=8, exclude="text,syntax_highlighting" %}{% include "form.html" %}{% endwith %}
+		{% include "home/submit_paste_languages.html" %}
+	</div>
+	<div role="tabpanel" class="tab-pane fade" id="encryption-tab">
+		<p>You can encrypt your paste to prevent people from viewing the content of your paste unless a correct password is provided. The encryption and decryption are performed client-side, meaning we never receive an unencrypted copy of the paste.</p>
+		<p><b>Note the following:</b></p>
+		<ul>
+			<li><b style="color: red;">If you lose your password, we can't recover the content of your paste.</b></li>
+			<li>Syntax highlighting doesn't work with all languages if your paste is encrypted.</li>
+		</ul>
+		<!-- Show password -->
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<div class="checkbox">
+					<label>
+						<input id="encryption-show-password" type="checkbox"> Show password
+					</label>
+				</div>
+			</div>
+		</div>
+		<!-- Password -->
+		<div id="encryption-password-group" class="form-group">
+			<label class="col-sm-2 control-label" for="encryption-password">Password</label>
+			<div class="col-sm-6">
+				<input id="encryption-password" class="form-control" type="password" maxlength="128"></input>
+			</div>
+		</div>
+		<!-- Confirm password -->
+		<div id="encryption-confirm-password-group" class="form-group">
+			<label class="col-sm-2 control-label" for="encryption-confirm-password">Confirm password</label>
+			<div class="col-sm-6">
+				<input id="encryption-confirm-password" class="form-control" type="password" maxlength="128"></input>
+			</div>
+		</div>
+		<!-- Generate password -->
+		<div class="form-group">
+			<label class="col-sm-2 control-label" for="encryption-generate-password">Generate password</label>
+			<div class="col-sm-6">
+				<button type="button" id="encryption-generate-password" class="btn btn-default">Generate password</button>
+			</div>
+		</div>
+		<!-- Encrypt password -->
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-6">
+				<button type="button" disabled="true" id="encryption-encrypt" class="btn btn-warning">Encrypt</button>
+			</div>
+		</div>
+	</div>
+	<!-- Enable tabs -->
+	<script>
+		$('#main-tab a').click(function (e) {
+			  e.preventDefault();
+			  $(this).tab('show');
+		});
+		$('#encryption-tab a').click(function (e) {
+			  e.preventDefault();
+			  $(this).tab('show');
+		});
+	</script>

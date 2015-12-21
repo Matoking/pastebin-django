@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}{{ paste.title }} - pastebin-django{% endblock %}
+
+{% block extra_js %}
+	<script src="{% static 'js/jquery.timeago.js' %}"></script>
+	<script src="{% static 'js/linkify.min.js' %}"></script> 
+	<script src="{% static 'js/linkify-jquery.min.js' %}"></script>
+	<script src="{% static 'js/pastebin-favorite.js' %}"></script>
+	<script src="{% static 'js/pastebin-comments.js' %}"></script>
+	<script src="{% static 'js/pastebin-controls.js' %}"></script>
+	{% if paste.encrypted %}
+	<script src="{% static 'js/pastebin-decrypt.js' %}"></script>
+	<script src="{% static 'js/sjcl.js' %}"></script>
+	<script src="{% static 'js/prism.js' %}" data-manual></script>
+	{% endif %}
+{% endblock %}
+{% block extra_head %}
+{% if paste.encrypted %}
+<link href="{% static 'css/prism.css' %}" rel="stylesheet">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<!-- Include information that is visible to Javascript script(s) -->
+			<script>
+			var pastebin_current_username = {% if request.user.is_authenticated() %}"{{ request.user.get_username() }}"{% else %}null{% endif %};
+			
+			var pastebin_char_id = "{{ paste.char_id }}";
+			var pastebin_paste_title = "{{ paste.title }}";
+			var pastebin_paste_format = "{{ paste.format }}";
+			
+			var pastebin_paste_favorited = {% if paste_favorited %}true{% else %}false{% endif %};
+			var pastebin_paste_encrypted = {% if paste.encrypted %}true{% else %}false{% endif %};
+			
+			var pastebin_total_comment_count = {{ comment_count }};
+			var pastebin_comment_page = 0;
+			
+			// Can user delete and/or modify comments besides his own
+			var pastebin_can_delete_comments = {% if request.user.is_staff %}true{% else %}false{% endif %};
+			var pastebin_can_edit_comments = {% if request.user.is_staff %}true{% else %}false{% endif %};
+			
+			var pastebin_logged_in = {% if request.user.is_authenticated() %}true{% else %}false{% endif %};
+			var pastebin_csrf_token = "{{ csrf_token }}";
+			</script>
+			<br>
+			<div class="panel panel-info">
+				<div class="panel-heading">
+					<h1 class="panel-title">
+						{% if paste.encrypted %}<span class="glyphicon glyphicon-lock"></span> {% endif %}
+						{% if paste.hidden %}<span class="glyphicon glyphicon-eye-close"></span> {% endif %}
+						{% if paste.expiration_datetime %}<span class="glyphicon glyphicon-time"></span> {% endif %}
+						{{ paste_version.title }}
+					</h1>
+				</div>
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-md-3">
+							<p><b>SUBMITTED BY:</b> {% if paste.user %}<b><a href="{{ url("users:profile", paste.user.username) }}">{{ paste.user.username }}</a></b>{% else %}Guest{% endif %}</p>
+							<p><b>DATE:</b> {{ paste.submitted }}</p>
+							{% if paste.version > 1 %}
+							<p><b>UPDATED:</b> {{ paste.updated }}</p>
+							{% endif %}
+							<p><b>FORMAT:</b> {{ syntax_format_to_text(paste_version.format) }}</p>
+							<p><b>SIZE: </b> {{ paste_version.size|filesizeformat }}</p>
+							{% if paste.expiration_datetime %}
+								{% with timesince_seconds=timeuntil_in_seconds(paste.expiration_datetime) %}
+									<p><b style="color: red;">EXPIRES IN:</b> {{ seconds_to_str(timesince_seconds) }}</p>
+								{% endwith %}
+							{% endif %}
+						</div>
+						<div class="col-md-3">
+							{% if paste.version > 1 %}
+							<a class="btn btn-primary btn-sm" href="{{ url("pastes:paste_history", paste.char_id) }}"><span class="glyphicon glyphicon-th-list"></span> History</a>
+							{% endif %}
+							<a class="btn btn-primary btn-sm" href="{% if version_number %}{{ url("raw_paste", paste.char_id, version_number) }}{% else %}{{ url("raw_paste", paste.char_id) }}{% endif %}"><span class="glyphicon glyphicon-font"></span> Raw</a>
+							<a class="btn btn-primary btn-sm" href="{% if version_number %}{{ url("download_paste", paste.char_id, version_number) }}{% else %}{{ url("download_paste", paste.char_id) }}{% endif %}"><span class="glyphicon glyphicon-download"></span> Download</a>
+							</div>
+						<div class="col-md-3">
+							<p><b>HITS:</b> {{ paste_hits }}</p>
+							<p><b>COMMENTS: </b> {{ comment_count }}</p>
+							<button onclick="pastebin.scrollToComments()" type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-menu-down"></span> Go to comments</button>
+						</div>
+						<div class="col-md-3">
+							{% if request.user.is_authenticated %}
+								{% if paste_favorited %}
+								<button id="favorite-button" type="button" class="btn btn-warning btn-xs"><span class='glyphicon glyphicon-remove'></span> Remove from favorites</button>
+								{% else %}
+								<button id="favorite-button" type="button" class="btn btn-info btn-xs"><span class='glyphicon glyphicon-star'></span> Add to favorites</button>
+								{% endif %}
+								<a class="btn btn-danger btn-xs" href="{{ url("pastes:report_paste", paste.char_id) }}"><span class="glyphicon glyphicon-warning-sign"></span> Report</a>
+								
+								{% if paste.user_id == request.user.id or request.user.is_staff %}
+								<hr>
+								<a class="btn btn-primary btn-xs" data="tooltip" title="Edit paste" href="{{ url("pastes:edit_paste", paste.char_id) }}"><span class="glyphicon glyphicon-pencil"></span> Edit</a>
+								<a class="btn btn-danger btn-xs" href="{{ url("pastes:remove_paste", paste.char_id) }}"><span class="glyphicon glyphicon-remove"></span> Remove</a>
+								{% endif %}
+							{% endif %}
+						</div>
+					</div>
+				</div>
+			</div>
+			<hr>
+			<div id="paste-controls" style="padding-left: 50px; padding-bottom: 10px; display: none;" class="row">
+				<button id="decrease-font-size" onclick="pastebin.decreaseFontSize()" title="Lower font size" disabled="true" class="btn btn-xs btn-link" href="#"><span class="glyphicon glyphicon-minus"></span></button>
+				<button id="increase-font-size" onclick="pastebin.increaseFontSize()" title="Increase font size" class="btn btn-xs btn-link" href="#"><span class="glyphicon glyphicon-plus"></span></button>
+			</div>
+			{% if not paste_version.encrypted %}
+			{# PASTE NOT ENCRYPTED #}
+			{{ paste_text|safe }}
+			{% else %}
+			{# PASTE ENCRYPTED #}
+			<pre id="encrypted-text" style="display: none;"><code>{{ paste_text|safe }}</code></pre>
+			<div id="paste-decrypt-form" class="form-horizontal">
+					<p class="col-sm-offset-2">This paste is encrypted and requires a password in order to be displayed.</p>
+					<div class="form-group">
+						<label class="col-sm-2 control-label" for="paste-password">Password</label>
+						<div class="col-sm-4">
+							<input class="form-control" id="paste-password" type="password"></input>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-offset-2 col-sm-6">
+							<button id="paste-decrypt" class="btn btn-primary">Decrypt</button>
+						</div>
+					</div>
+			</div>
+			{% endif %}
+			<!-- Comments -->
+			<hr>
+			<div id="comment-panel" class="panel panel-default">
+				<div class="panel-heading">
+					<button id="comment-panel-button" onclick="pastebin.showComments()" type="button" class="btn btn-info btn-sm">Show comments ({{ comment_count }})</button>
+				</div>
+				<div style="display: none;" id="comment-body" class="panel-body">
+					{% include "comments/comments.html" %}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

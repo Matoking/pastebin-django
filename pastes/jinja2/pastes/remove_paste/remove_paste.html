@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Remove: {{ paste.title }} - pastebin-django{% endblock %}
+
+{% block content %}
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="page-header">
+		        <h1>Remove: {{ paste.title }}</h1>
+		    </div>
+			<div class="alert alert-danger">
+				You are removing the paste {{ paste.title }}.<br><br>In addition, someone who found your paste useful and wanted to share it with someone might be extremely pissed off to find out you had removed it.
+			</div>
+			<form action="{{ url('pastes:remove_paste', paste.char_id) }}" class="form-horizontal" role="form" method="post">
+		        {% csrf_token %}
+		        {% with form=verify_form %}{% include "form.html" %}{% endwith %}
+		        {% with form=remove_form %}{% include "form.html" %}{% endwith %}
+		        <div class="form-group">
+		            <div class="col-sm-offset-2 col-sm-10">
+		                <button type="submit" class="btn btn-danger">Remove paste</button>
+		            </div>
+		        </div>
+		    </form>
+		</div>
+	</div>
+</div>
+{% endblock %}

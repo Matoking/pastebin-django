@@ -3,6 +3,6 @@ from django.views.generic import TemplateView
 
 from home import views
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', views.home, name="home"),
-)
+]
